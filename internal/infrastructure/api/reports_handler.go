@@ -5,13 +5,25 @@ import (
 	"strconv"
 	"time"
 
-	"go-finance-advisor/internal/application"
+	"go-finance-advisor/internal/domain"
 
 	"github.com/gin-gonic/gin"
 )
 
+// ReportsServiceInterface defines the contract for reports service operations
+type ReportsServiceInterface interface {
+	GenerateMonthlyReport(userID uint, year, month int) (*domain.FinancialReport, error)
+	GenerateQuarterlyReport(userID uint, year, quarter int) (*domain.FinancialReport, error)
+	GenerateYearlyReport(userID uint, year int) (*domain.FinancialReport, error)
+	GenerateCustomReport(userID uint, startDate, endDate time.Time) (*domain.FinancialReport, error)
+}
+
 type ReportsHandler struct {
-	Service *application.ReportsService
+	Service ReportsServiceInterface
+}
+
+func NewReportsHandler(service ReportsServiceInterface) *ReportsHandler {
+	return &ReportsHandler{Service: service}
 }
 
 // GenerateMonthlyReport generates a monthly financial report

@@ -254,10 +254,7 @@ func (s *ReportsService) calculateBudgetPerformance(userID uint, startDate, endD
 }
 
 func (s *ReportsService) getTopCategories(categories []domain.CategoryMetrics, categoryType string, limit int) []domain.CategoryMetrics {
-	var filtered []domain.CategoryMetrics
-	for _, category := range categories {
-		filtered = append(filtered, category)
-	}
+	filtered := append([]domain.CategoryMetrics{}, categories...)
 
 	// Sort by total amount (descending)
 	for i := 0; i < len(filtered)-1; i++ {

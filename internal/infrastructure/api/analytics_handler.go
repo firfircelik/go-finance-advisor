@@ -11,7 +11,7 @@ import (
 )
 
 type AnalyticsHandler struct {
-	Service *application.AnalyticsService
+	Service application.AnalyticsServiceInterface
 }
 
 // GetFinancialMetrics returns comprehensive financial metrics for a user

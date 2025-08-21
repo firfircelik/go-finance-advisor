@@ -5,14 +5,22 @@ import (
 	"strconv"
 	"time"
 
-	"go-finance-advisor/internal/application"
 	"go-finance-advisor/internal/domain"
 
 	"github.com/gin-gonic/gin"
 )
 
+type BudgetServiceInterface interface {
+	CreateBudget(budget *domain.Budget) error
+	GetBudgetsByUser(userID uint) ([]domain.Budget, error)
+	GetBudgetByID(budgetID uint) (*domain.Budget, error)
+	UpdateBudget(budgetID uint, updates *domain.Budget) error
+	DeleteBudget(budgetID uint) error
+	GetBudgetSummary(userID uint) (*domain.BudgetSummary, error)
+}
+
 type BudgetHandler struct {
-	Service *application.BudgetService
+	Service BudgetServiceInterface
 }
 
 type CreateBudgetRequest struct {

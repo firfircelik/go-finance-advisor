@@ -11,8 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ExportServiceInterface defines the interface for export service
+type ExportServiceInterface interface {
+	ExportTransactions(userID uint, format domain.ExportFormat, startDate, endDate *time.Time) ([]byte, string, error)
+	ExportFinancialReport(userID uint, reportType string, year, month int, format domain.ExportFormat) ([]byte, string, error)
+	ExportAllData(userID uint, format domain.ExportFormat) ([]byte, string, error)
+	ExportBudgets(userID uint, format domain.ExportFormat) ([]byte, string, error)
+}
+
 type ExportHandler struct {
-	Service *application.ExportService
+	Service ExportServiceInterface
 }
 
 func NewExportHandler(service *application.ExportService) *ExportHandler {

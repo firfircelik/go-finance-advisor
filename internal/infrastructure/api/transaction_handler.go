@@ -14,8 +14,17 @@ import (
     "github.com/gin-gonic/gin"
 )
 
+// TransactionServiceInterface defines the interface for transaction service
+type TransactionServiceInterface interface {
+    Create(transaction *domain.Transaction) error
+    GetByID(id uint) (*domain.Transaction, error)
+    ListWithFilters(userID uint, transactionType *string, categoryID *uint, startDate, endDate *time.Time, limit, offset int) ([]domain.Transaction, error)
+    Update(transaction *domain.Transaction) error
+    Delete(id uint) error
+}
+
 type TransactionHandler struct {
-    Service *application.TransactionService
+    Service TransactionServiceInterface
 }
 
 func NewTransactionHandler(service *application.TransactionService) *TransactionHandler {
@@ -136,6 +145,90 @@ func (h *TransactionHandler) List(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, transactions)
+}
+
+// GetByID retrieves a transaction by ID
+func (h *TransactionHandler) GetByID(c *gin.Context) {
+    idStr := c.Param("id")
+    id, err := strconv.ParseUint(idStr, 10, 32)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
+        return
+    }
+
+    transaction, err := h.Service.GetByID(uint(id))
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, transaction)
+}
+
+// Update updates an existing transaction
+func (h *TransactionHandler) Update(c *gin.Context) {
+    idStr := c.Param("id")
+    id, err := strconv.ParseUint(idStr, 10, 32)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
+        return
+    }
+
+    // Get existing transaction
+    existingTransaction, err := h.Service.GetByID(uint(id))
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+        return
+    }
+
+    var req CreateTransactionRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Parse date if provided
+    var transactionDate time.Time
+    if req.Date != "" {
+        transactionDate, err = time.Parse("2006-01-02", req.Date)
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use YYYY-MM-DD"})
+            return
+        }
+    } else {
+        transactionDate = existingTransaction.Date
+    }
+
+    // Update transaction fields
+    existingTransaction.Amount = req.Amount
+    existingTransaction.Type = req.Type
+    existingTransaction.Description = req.Description
+    existingTransaction.CategoryID = req.CategoryID
+    existingTransaction.Date = transactionDate
+
+    if err := h.Service.Update(existingTransaction); err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update transaction"})
+        return
+    }
+
+    c.JSON(http.StatusOK, existingTransaction)
+}
+
+// Delete deletes a transaction
+func (h *TransactionHandler) Delete(c *gin.Context) {
+    idStr := c.Param("id")
+    id, err := strconv.ParseUint(idStr, 10, 32)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
+        return
+    }
+
+    if err := h.Service.Delete(uint(id)); err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Transaction deleted successfully"})
 }
 
 // ExportCSV exports transactions as CSV

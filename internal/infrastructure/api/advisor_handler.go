@@ -5,19 +5,38 @@ import (
 	"strconv"
 
 	"go-finance-advisor/internal/application"
+	"go-finance-advisor/internal/domain"
 	"go-finance-advisor/internal/pkg"
 
 	"github.com/gin-gonic/gin"
 )
 
+// AdvisorServiceInterface defines the contract for advisor service operations
+type AdvisorServiceInterface interface {
+	GenerateAdvice(user domain.User) (*application.InvestmentAdvice, error)
+}
+
+// MarketServiceInterface defines the contract for market service operations
+type MarketServiceInterface interface {
+	GetCryptoPrices() ([]pkg.CryptoPrice, error)
+	GetStockPrices(symbols []string) ([]pkg.StockPrice, error)
+	GetMarketData() (*pkg.MarketData, error)
+	GetMarketSummary() (map[string]interface{}, error)
+	AnalyzeMarket() (*pkg.MarketAnalysis, error)
+	GenerateRecommendations(riskTolerance string, monthlyIncome float64, analysis *pkg.MarketAnalysis) []pkg.InvestmentRecommendation
+	GenerateAdviceText(riskTolerance string, analysis *pkg.MarketAnalysis) string
+	GeneratePersonalizedAdvice(user *domain.User, monthlyIncome float64) (*pkg.InvestmentRecommendation, error)
+	PerformAIRiskAssessment(user *domain.User, monthlyIncome float64, goals []string) (*pkg.AIRiskAssessment, error)
+}
+
 type AdvisorHandler struct {
-	Advisor       *application.AdvisorService
-	Users         *application.UserService
-	MarketService *pkg.RealTimeMarketService
+	Advisor       AdvisorServiceInterface
+	Users         UserServiceInterface
+	MarketService MarketServiceInterface
 }
 
 // NewAdvisorHandler creates a new advisor handler with real-time market service
-func NewAdvisorHandler(advisor *application.AdvisorService, users *application.UserService, marketService *pkg.RealTimeMarketService) *AdvisorHandler {
+func NewAdvisorHandler(advisor AdvisorServiceInterface, users UserServiceInterface, marketService MarketServiceInterface) *AdvisorHandler {
 	return &AdvisorHandler{
 		Advisor:       advisor,
 		Users:         users,
@@ -58,7 +77,7 @@ func (h *AdvisorHandler) GetRealTimeAdvice(c *gin.Context) {
 	monthlyIncomeStr := c.DefaultQuery("monthly_income", "5000")
 	monthlyIncome, _ := strconv.ParseFloat(monthlyIncomeStr, 64)
 
-	advice, err := h.MarketService.GeneratePersonalizedAdvice(user, monthlyIncome)
+	advice, err := h.MarketService.GeneratePersonalizedAdvice(&user, monthlyIncome)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -191,7 +210,7 @@ func (h *AdvisorHandler) GetAIRiskAssessment(c *gin.Context) {
 	}
 
 	// Perform AI risk assessment
-	assessment, err := h.MarketService.PerformAIRiskAssessment(user, monthlyIncome, goals)
+	assessment, err := h.MarketService.PerformAIRiskAssessment(&user, monthlyIncome, goals)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -255,7 +274,7 @@ func (h *AdvisorHandler) GetAIPortfolioOptimization(c *gin.Context) {
 	currentValue, _ := strconv.ParseFloat(currentValueStr, 64)
 
 	// Perform AI risk assessment for optimization
-	assessment, err := h.MarketService.PerformAIRiskAssessment(user, monthlyIncome, []string{"optimization"})
+	assessment, err := h.MarketService.PerformAIRiskAssessment(&user, monthlyIncome, []string{"optimization"})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

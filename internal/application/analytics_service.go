@@ -464,7 +464,7 @@ func (s *AnalyticsService) calculateBudgetAlerts(userID uint, startDate, endDate
 				BudgetAmount:   budget.Amount,
 				SpentAmount:    spentAmount,
 				PercentageUsed: percentageUsed,
-				DaysRemaining:  int(endDate.Sub(time.Now()).Hours() / 24),
+				DaysRemaining:  int(time.Until(endDate).Hours() / 24),
 			}
 			alert.GetAlertLevel()
 			alerts = append(alerts, alert)

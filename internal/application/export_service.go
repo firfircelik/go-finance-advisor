@@ -113,8 +113,8 @@ func (s *ExportService) ExportAllData(userID uint, format domain.ExportFormat) (
 		return nil, "", err
 	}
 
-	// Get categories (user-created ones)
-	err = s.DB.Where("user_id = ?", userID).Find(&categories).Error
+	// Get categories (all categories since they are global)
+	err = s.DB.Find(&categories).Error
 	if err != nil {
 		return nil, "", err
 	}

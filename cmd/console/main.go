@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +12,8 @@ import (
 	"go-finance-advisor/internal/domain"
 
 	"github.com/glebarez/sqlite"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gorm.io/gorm"
 )
 
@@ -771,7 +772,8 @@ func (app *App) portfolioRecommendations() {
 		riskLevel = "moderate" // Default
 	}
 	
-	fmt.Printf("\n👤 Your Risk Profile: %s\n\n", strings.Title(riskLevel))
+	caser := cases.Title(language.English)
+	fmt.Printf("\n👤 Your Risk Profile: %s\n\n", caser.String(riskLevel))
 	
 	switch riskLevel {
 	case "conservative":

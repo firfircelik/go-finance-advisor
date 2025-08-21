@@ -4,18 +4,27 @@ import (
 	"net/http"
 	"strconv"
 
-	"go-finance-advisor/internal/application"
 	"go-finance-advisor/internal/domain"
 	"go-finance-advisor/internal/infrastructure/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-type UserHandler struct {
-	Service *application.UserService
+// UserServiceInterface defines the contract for user service operations
+type UserServiceInterface interface {
+	Create(user *domain.User) error
+	GetByID(id uint) (domain.User, error)
+	Update(user *domain.User) error
+	GetByEmail(email string) (*domain.User, error)
+	Register(email, password, firstName, lastName string) (*domain.User, error)
+	Login(email, password string) (*domain.User, error)
 }
 
-func NewUserHandler(service *application.UserService) *UserHandler {
+type UserHandler struct {
+	Service UserServiceInterface
+}
+
+func NewUserHandler(service UserServiceInterface) *UserHandler {
 	return &UserHandler{Service: service}
 }
 

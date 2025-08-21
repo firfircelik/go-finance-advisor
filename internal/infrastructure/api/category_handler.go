@@ -10,8 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type CategoryServiceInterface interface {
+	InitializeDefaultCategories() error
+	GetAllCategories() ([]domain.Category, error)
+	GetCategoryByID(categoryID uint) (*domain.Category, error)
+	CreateCategory(category *domain.Category) error
+	UpdateCategory(categoryID uint, category *domain.Category) error
+	DeleteCategory(categoryID uint) error
+	GetCategoryUsageStats(userID uint) ([]application.CategoryUsageStats, error)
+	GetCategoriesByType(categoryType string) ([]domain.Category, error)
+}
+
 type CategoryHandler struct {
-	Service *application.CategoryService
+	Service CategoryServiceInterface
 }
 
 type CreateCategoryRequest struct {

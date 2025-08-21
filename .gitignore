@@ -1,0 +1,216 @@
+# 🚀 Personal Finance Tracker - .gitignore
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+build/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+*.prof
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+*.env
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build and Coverage
+coverage/
+coverage.out
+coverage.html
+coverage.xml
+*.cover
+*.coverprofile
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+finance.db
+test.db
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Documentation
+docs/swagger/
+api/docs/
+
+# Docker
+.dockerignore
+
+# Kubernetes
+*.yaml.bak
+*.yml.bak
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+certs/
+keys/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+node_modules/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Air (hot reload) temporary files
+tmp/
+.air/
+
+# Profiling files
+cpu.prof
+mem.prof
+block.prof
+mutex.prof
+trace.out
+
+# Local development
+local/
+dev/
+
+# Terraform (if used for infrastructure)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Helm charts (if used)
+charts/*.tgz
+
+# Monitoring and metrics
+prometheus_data/
+grafana_data/
+
+# Secrets and sensitive data
+secrets/
+*.secret
+*.private
+
+# Generated files
+generated/
+auto-generated/
+
+# Vendor directory (uncomment if using vendor)
+# vendor/
+
+# Go module download cache
+# Uncomment if you want to ignore the module cache
+# $GOPATH/pkg/mod/
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Ignore everything in the .git directory except for hooks
+.git/*
+!.git/hooks/
+
+# Local configuration overrides
+config.local.yaml
+config.local.yml
+config.local.json
+
+# Performance test results
+benchmark_results/
+load_test_results/
+
+# Security scan results
+security_reports/
+vulnerability_reports/

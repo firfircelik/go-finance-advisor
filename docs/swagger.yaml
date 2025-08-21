@@ -1,0 +1,530 @@
+openapi: 3.0.3
+info:
+  title: Personal Finance Tracker API
+  description: |
+    A comprehensive personal finance tracking API with investment advisory features.
+    
+    ## Features
+    - User management with risk profiling
+    - Transaction tracking (income/expenses)
+    - Investment advice based on financial data
+    - Real-time market data integration
+    - JWT-based authentication
+    
+    ## Authentication
+    Most endpoints require JWT authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@financetracker.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://api.financetracker.com/v1
+    description: Production server
+
+paths:
+  /users:
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      description: Register a new user with optional risk tolerance setting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            examples:
+              moderate_user:
+                summary: Moderate risk user
+                value:
+                  risk_tolerance: "moderate"
+              conservative_user:
+                summary: Conservative user
+                value:
+                  risk_tolerance: "conservative"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get user profile
+      description: Retrieve user information including risk tolerance
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}/risk:
+    put:
+      tags:
+        - Users
+      summary: Update user risk tolerance
+      description: Update the risk tolerance setting for investment advice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskUpdateRequest'
+      responses:
+        '200':
+          description: Risk tolerance updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid risk tolerance value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}/transactions:
+    post:
+      tags:
+        - Transactions
+      summary: Create a new transaction
+      description: Add a new income or expense transaction
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+            examples:
+              income:
+                summary: Income transaction
+                value:
+                  type: "income"
+                  description: "Monthly salary"
+                  amount: 5000.00
+                  category: "work"
+                  date: "2024-01-15T00:00:00Z"
+              expense:
+                summary: Expense transaction
+                value:
+                  type: "expense"
+                  description: "Grocery shopping"
+                  amount: 150.75
+                  category: "food"
+                  date: "2024-01-15T00:00:00Z"
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Invalid transaction data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - Transactions
+      summary: List user transactions
+      description: Retrieve all transactions for a user, ordered by date (newest first)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}/advice:
+    get:
+      tags:
+        - Investment Advice
+      summary: Get investment advice
+      description: |
+        Generate personalized investment recommendations based on:
+        - User's risk tolerance (conservative, moderate, aggressive)
+        - Monthly savings calculated from last 3 months of transactions
+        - Current market conditions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Investment advice generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentAdvice'
+              examples:
+                moderate_advice:
+                  summary: Moderate risk advice
+                  value:
+                    monthly_savings: 2500.00
+                    risk: "moderate"
+                    recommendations:
+                      - asset: "SPY"
+                        amount: 1250.00
+                        percent: 50
+                      - asset: "BTC"
+                        amount: 1250.00
+                        percent: 50
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique user identifier
+          example: 1
+        risk_tolerance:
+          type: string
+          enum: [conservative, moderate, aggressive]
+          description: User's investment risk tolerance
+          example: "moderate"
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+          description: User's transaction history
+      required:
+        - id
+        - risk_tolerance
+
+    CreateUserRequest:
+      type: object
+      properties:
+        risk_tolerance:
+          type: string
+          enum: [conservative, moderate, aggressive]
+          description: User's investment risk tolerance
+          default: "moderate"
+          example: "moderate"
+
+    LoginRequest:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          description: User ID for authentication
+          example: 1
+      required:
+        - user_id
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT authentication token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      required:
+        - token
+
+    RiskUpdateRequest:
+      type: object
+      properties:
+        risk_tolerance:
+          type: string
+          enum: [conservative, moderate, aggressive]
+          description: New risk tolerance setting
+          example: "aggressive"
+      required:
+        - risk_tolerance
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique transaction identifier
+          example: 1
+        user_id:
+          type: integer
+          format: int64
+          description: ID of the user who owns this transaction
+          example: 1
+        type:
+          type: string
+          enum: [income, expense]
+          description: Type of transaction
+          example: "income"
+        description:
+          type: string
+          description: Transaction description
+          example: "Monthly salary"
+        amount:
+          type: number
+          format: double
+          description: Transaction amount (always positive)
+          example: 5000.00
+        category:
+          type: string
+          description: Transaction category
+          example: "work"
+        date:
+          type: string
+          format: date-time
+          description: Transaction date
+          example: "2024-01-15T00:00:00Z"
+        created_at:
+          type: string
+          format: date-time
+          description: Record creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Record last update timestamp
+          example: "2024-01-15T10:30:00Z"
+      required:
+        - id
+        - user_id
+        - type
+        - description
+        - amount
+        - category
+        - date
+
+    CreateTransactionRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [income, expense]
+          description: Type of transaction
+          default: "expense"
+          example: "income"
+        description:
+          type: string
+          description: Transaction description
+          example: "Monthly salary"
+        amount:
+          type: number
+          format: double
+          description: Transaction amount (always positive)
+          minimum: 0.01
+          example: 5000.00
+        category:
+          type: string
+          description: Transaction category
+          example: "work"
+        date:
+          type: string
+          format: date-time
+          description: Transaction date
+          example: "2024-01-15T00:00:00Z"
+      required:
+        - description
+        - amount
+        - category
+        - date
+
+    InvestmentAdvice:
+      type: object
+      properties:
+        monthly_savings:
+          type: number
+          format: double
+          description: Calculated monthly savings from last 3 months
+          example: 2500.00
+        risk:
+          type: string
+          enum: [conservative, moderate, aggressive]
+          description: User's risk tolerance used for advice
+          example: "moderate"
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+          description: Investment recommendations
+      required:
+        - monthly_savings
+        - risk
+        - recommendations
+
+    Recommendation:
+      type: object
+      properties:
+        asset:
+          type: string
+          description: Recommended asset symbol
+          example: "SPY"
+        amount:
+          type: number
+          format: double
+          description: Recommended investment amount
+          example: 1250.00
+        percent:
+          type: number
+          format: double
+          description: Percentage of total savings for this asset
+          example: 50
+      required:
+        - asset
+        - amount
+        - percent
+
+    MarketData:
+      type: object
+      properties:
+        bitcoin:
+          type: number
+          format: double
+          description: Current Bitcoin price in USD
+          example: 45000.00
+        sp500:
+          type: number
+          format: double
+          description: Current S&P 500 index value
+          example: 4500.00
+      required:
+        - bitcoin
+        - sp500
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request data"
+      required:
+        - error
+
+tags:
+  - name: Users
+    description: User management operations
+  - name: Authentication
+    description: Authentication and authorization
+  - name: Transactions
+    description: Financial transaction management
+  - name: Investment Advice
+    description: AI-powered investment recommendations

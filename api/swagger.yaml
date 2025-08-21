@@ -1,0 +1,1269 @@
+openapi: 3.0.3
+info:
+  title: Personal Finance Tracker with AI Financial Advisor
+  description: |
+    A comprehensive personal finance management system with AI-powered financial advisory features.
+    
+    ## Features
+    - 🔐 **Secure Authentication** - JWT-based authentication with refresh tokens
+    - 💰 **Transaction Management** - Track income, expenses, and investments
+    - 📊 **Financial Analytics** - Detailed spending analysis and reports
+    - 🤖 **AI Financial Advisor** - Personalized investment recommendations
+    - 📈 **Market Data Integration** - Real-time crypto and stock prices
+    - 🎯 **Risk Assessment** - Personalized risk tolerance profiling
+    - 📱 **RESTful API** - Clean and well-documented API endpoints
+    
+    ## Architecture
+    Built with Clean Architecture principles using Go, featuring:
+    - Domain-driven design
+    - Repository pattern
+    - Dependency injection
+    - Comprehensive error handling
+    - High test coverage
+    
+    ## Security
+    - JWT authentication with refresh tokens
+    - Password hashing with bcrypt
+    - Input validation and sanitization
+    - Rate limiting
+    - CORS protection
+  version: 1.0.0
+  contact:
+    name: Firat Celik
+    url: https://firatcelik.vercel.app
+    email: firat@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://api.finance-advisor.com
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Users
+    description: User management and profile operations
+  - name: Transactions
+    description: Financial transaction management
+  - name: Analytics
+    description: Financial analytics and reporting
+  - name: Advisor
+    description: AI financial advisory services
+  - name: Health
+    description: System health and monitoring
+
+paths:
+  # Authentication Endpoints
+  /api/v1/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              email: user@example.com
+              password: SecurePassword123!
+              name: John Doe
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: user@example.com
+              password: SecurePassword123!
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Get a new access token using refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate user session and tokens
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # User Management Endpoints
+  /api/v1/users/profile:
+    get:
+      tags:
+        - Users
+      summary: Get user profile
+      description: Retrieve current user's profile information
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      description: Update current user's profile information
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/risk-profile:
+    put:
+      tags:
+        - Users
+      summary: Update risk tolerance
+      description: Update user's investment risk tolerance level
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskProfileRequest'
+      responses:
+        '200':
+          description: Risk profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid risk tolerance value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Transaction Management Endpoints
+  /api/v1/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get user transactions
+      description: Retrieve paginated list of user's transactions with optional filtering
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number (default: 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page (default: 20, max: 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: type
+          in: query
+          description: Filter by transaction type
+          schema:
+            $ref: '#/components/schemas/TransactionType'
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          description: Filter transactions from this date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: Filter transactions until this date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Transactions
+      summary: Create new transaction
+      description: Add a new financial transaction
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+            example:
+              amount: 1500.50
+              type: expense
+              category: groceries
+              description: Weekly grocery shopping
+              date: "2024-01-15"
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/transactions/{id}:
+    get:
+      tags:
+        - Transactions
+      summary: Get transaction by ID
+      description: Retrieve a specific transaction by its ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Transaction ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Transaction retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Transactions
+      summary: Update transaction
+      description: Update an existing transaction
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Transaction ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTransactionRequest'
+      responses:
+        '200':
+          description: Transaction updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Transactions
+      summary: Delete transaction
+      description: Delete a specific transaction
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Transaction ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Transaction deleted successfully
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Analytics Endpoints
+  /api/v1/analytics/summary:
+    get:
+      tags:
+        - Analytics
+      summary: Get financial summary
+      description: Get comprehensive financial summary including income, expenses, and savings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Time period for summary
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+        - name: year
+          in: query
+          description: Year for the summary (default: current year)
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+        - name: month
+          in: query
+          description: Month for the summary (1-12, required if period is month)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        '200':
+          description: Financial summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialSummary'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/analytics/spending-by-category:
+    get:
+      tags:
+        - Analytics
+      summary: Get spending by category
+      description: Get breakdown of spending by category for specified period
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Time period for analysis
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+        - name: year
+          in: query
+          description: Year for the analysis
+          schema:
+            type: integer
+        - name: month
+          in: query
+          description: Month for the analysis (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        '200':
+          description: Spending analysis retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpendingByCategory'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # AI Financial Advisor Endpoints
+  /api/v1/advisor/investment-advice:
+    get:
+      tags:
+        - Advisor
+      summary: Get investment advice
+      description: Get personalized investment recommendations based on user's financial profile and risk tolerance
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Investment advice generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentAdvice'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Market data service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/advisor/market-data:
+    get:
+      tags:
+        - Advisor
+      summary: Get market data
+      description: Get current market data for cryptocurrencies and stocks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbols
+          in: query
+          description: Comma-separated list of symbols (e.g., BTC,ETH,AAPL,GOOGL)
+          schema:
+            type: string
+            example: "BTC,ETH,AAPL,GOOGL"
+      responses:
+        '200':
+          description: Market data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketData'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Market data service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Health and Monitoring Endpoints
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check if the service is healthy and running
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /health/ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check
+      description: Check if the service is ready to accept requests
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /metrics:
+    get:
+      tags:
+        - Health
+      summary: Prometheus metrics
+      description: Get Prometheus-formatted metrics
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    # Authentication Schemas
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        password:
+          type: string
+          minLength: 8
+          description: User's password (minimum 8 characters)
+          example: SecurePassword123!
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: User's full name
+          example: John Doe
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        password:
+          type: string
+          description: User's password
+          example: SecurePassword123!
+
+    RefreshRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Valid refresh token
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        access_token:
+          type: string
+          description: JWT access token
+        refresh_token:
+          type: string
+          description: JWT refresh token
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+          example: 3600
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: New JWT access token
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+          example: 3600
+
+    # User Schemas
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: User ID
+          example: 1
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        name:
+          type: string
+          description: User's full name
+          example: John Doe
+        risk_tolerance:
+          $ref: '#/components/schemas/RiskTolerance'
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last profile update timestamp
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: User's full name
+          example: John Doe
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+
+    RiskProfileRequest:
+      type: object
+      required:
+        - risk_tolerance
+      properties:
+        risk_tolerance:
+          $ref: '#/components/schemas/RiskTolerance'
+
+    RiskTolerance:
+      type: string
+      enum: [conservative, moderate, aggressive]
+      description: User's investment risk tolerance level
+      example: moderate
+
+    # Transaction Schemas
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Transaction ID
+          example: 1
+        user_id:
+          type: integer
+          format: int64
+          description: User ID who owns this transaction
+          example: 1
+        amount:
+          type: number
+          format: decimal
+          description: Transaction amount
+          example: 1500.50
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        category:
+          type: string
+          description: Transaction category
+          example: groceries
+        description:
+          type: string
+          description: Transaction description
+          example: Weekly grocery shopping
+        date:
+          type: string
+          format: date
+          description: Transaction date
+          example: "2024-01-15"
+        created_at:
+          type: string
+          format: date-time
+          description: Transaction creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last transaction update timestamp
+
+    TransactionType:
+      type: string
+      enum: [income, expense, investment]
+      description: Type of financial transaction
+      example: expense
+
+    CreateTransactionRequest:
+      type: object
+      required:
+        - amount
+        - type
+        - category
+        - date
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          description: Transaction amount (must be positive)
+          example: 1500.50
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        category:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Transaction category
+          example: groceries
+        description:
+          type: string
+          maxLength: 500
+          description: Optional transaction description
+          example: Weekly grocery shopping
+        date:
+          type: string
+          format: date
+          description: Transaction date
+          example: "2024-01-15"
+
+    UpdateTransactionRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          description: Transaction amount (must be positive)
+          example: 1500.50
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        category:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Transaction category
+          example: groceries
+        description:
+          type: string
+          maxLength: 500
+          description: Transaction description
+          example: Weekly grocery shopping
+        date:
+          type: string
+          format: date
+          description: Transaction date
+          example: "2024-01-15"
+
+    TransactionListResponse:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+
+    PaginationInfo:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        limit:
+          type: integer
+          description: Number of items per page
+          example: 20
+        total:
+          type: integer
+          description: Total number of items
+          example: 150
+        total_pages:
+          type: integer
+          description: Total number of pages
+          example: 8
+        has_next:
+          type: boolean
+          description: Whether there are more pages
+          example: true
+        has_prev:
+          type: boolean
+          description: Whether there are previous pages
+          example: false
+
+    # Analytics Schemas
+    FinancialSummary:
+      type: object
+      properties:
+        period:
+          type: string
+          description: Summary period
+          example: month
+        total_income:
+          type: number
+          format: decimal
+          description: Total income for the period
+          example: 5000.00
+        total_expenses:
+          type: number
+          format: decimal
+          description: Total expenses for the period
+          example: 3500.00
+        total_investments:
+          type: number
+          format: decimal
+          description: Total investments for the period
+          example: 1000.00
+        net_savings:
+          type: number
+          format: decimal
+          description: Net savings (income - expenses - investments)
+          example: 500.00
+        savings_rate:
+          type: number
+          format: decimal
+          description: Savings rate as percentage
+          example: 10.0
+        transaction_count:
+          type: integer
+          description: Total number of transactions
+          example: 45
+
+    SpendingByCategory:
+      type: object
+      properties:
+        period:
+          type: string
+          description: Analysis period
+          example: month
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategorySpending'
+        total_spending:
+          type: number
+          format: decimal
+          description: Total spending across all categories
+          example: 3500.00
+
+    CategorySpending:
+      type: object
+      properties:
+        category:
+          type: string
+          description: Category name
+          example: groceries
+        amount:
+          type: number
+          format: decimal
+          description: Total amount spent in this category
+          example: 800.00
+        percentage:
+          type: number
+          format: decimal
+          description: Percentage of total spending
+          example: 22.86
+        transaction_count:
+          type: integer
+          description: Number of transactions in this category
+          example: 12
+
+    # Advisor Schemas
+    InvestmentAdvice:
+      type: object
+      properties:
+        monthly_savings:
+          type: number
+          format: decimal
+          description: Calculated monthly savings available for investment
+          example: 500.00
+        risk_profile:
+          $ref: '#/components/schemas/RiskTolerance'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvestmentRecommendation'
+        market_outlook:
+          type: string
+          description: General market outlook and advice
+          example: "Based on current market conditions and your moderate risk tolerance, consider diversifying your portfolio with a mix of stocks and bonds."
+        generated_at:
+          type: string
+          format: date-time
+          description: When the advice was generated
+
+    InvestmentRecommendation:
+      type: object
+      properties:
+        asset_type:
+          type: string
+          description: Type of investment asset
+          example: cryptocurrency
+        symbol:
+          type: string
+          description: Asset symbol
+          example: BTC
+        name:
+          type: string
+          description: Asset name
+          example: Bitcoin
+        current_price:
+          type: number
+          format: decimal
+          description: Current market price
+          example: 45000.00
+        recommended_allocation:
+          type: number
+          format: decimal
+          description: Recommended allocation percentage
+          example: 15.0
+        reasoning:
+          type: string
+          description: Reasoning for the recommendation
+          example: "Bitcoin shows strong fundamentals and fits your moderate risk tolerance."
+
+    MarketData:
+      type: object
+      properties:
+        cryptocurrencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CryptoPrice'
+        stocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockPrice'
+        last_updated:
+          type: string
+          format: date-time
+          description: When the data was last updated
+
+    CryptoPrice:
+      type: object
+      properties:
+        symbol:
+          type: string
+          description: Cryptocurrency symbol
+          example: BTC
+        name:
+          type: string
+          description: Cryptocurrency name
+          example: Bitcoin
+        price:
+          type: number
+          format: decimal
+          description: Current price in USD
+          example: 45000.00
+        change_24h:
+          type: number
+          format: decimal
+          description: 24-hour price change percentage
+          example: 2.5
+        market_cap:
+          type: number
+          format: decimal
+          description: Market capitalization
+          example: 850000000000
+
+    StockPrice:
+      type: object
+      properties:
+        symbol:
+          type: string
+          description: Stock symbol
+          example: AAPL
+        name:
+          type: string
+          description: Company name
+          example: Apple Inc.
+        price:
+          type: number
+          format: decimal
+          description: Current stock price
+          example: 175.50
+        change:
+          type: number
+          format: decimal
+          description: Price change
+          example: 2.30
+        change_percent:
+          type: number
+          format: decimal
+          description: Price change percentage
+          example: 1.33
+
+    # Health Schemas
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall health status
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check timestamp
+        version:
+          type: string
+          description: Application version
+          example: 1.0.0
+        uptime:
+          type: string
+          description: Application uptime
+          example: 2h30m15s
+        checks:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/HealthCheck'
+            redis:
+              $ref: '#/components/schemas/HealthCheck'
+            external_apis:
+              $ref: '#/components/schemas/HealthCheck'
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Component health status
+          example: healthy
+        response_time:
+          type: string
+          description: Response time for the check
+          example: 5ms
+        message:
+          type: string
+          description: Additional information about the check
+          example: Database connection successful
+
+    # Common Response Schemas
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: Operation completed successfully
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Invalid input data
+        code:
+          type: string
+          description: Error code
+          example: VALIDATION_ERROR
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+        request_id:
+          type: string
+          description: Unique request identifier for tracking
+          example: req_123456789
+
+security:
+  - BearerAuth: []

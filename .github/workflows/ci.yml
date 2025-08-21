@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  GO_VERSION: '1.22'
+  GO_VERSION: '1.24'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -52,11 +52,11 @@ jobs:
     - name: Run staticcheck
       run: staticcheck ./...
     
-    - name: Install golint
-      run: go install golang.org/x/lint/golint@latest
-    
-    - name: Run golint
-      run: golint ./...
+    - name: Install golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+        args: --timeout=5m
     
     - name: Run tests
       run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
@@ -251,12 +251,12 @@ jobs:
         echo "EOF" >> $GITHUB_OUTPUT
     
     - name: Create Release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ github.run_number }}
-        release_name: Release v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
         body: |
           ## Changes in this Release
           ${{ steps.changelog.outputs.CHANGELOG }}

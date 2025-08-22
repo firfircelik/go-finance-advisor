@@ -21,8 +21,8 @@ type Budget struct {
 
 // BudgetSummary represents budget overview for a user
 type BudgetSummary struct {
-	TotalBudget   float64 `json:"total_budget"`
-	TotalSpent    float64 `json:"total_spent"`
+	TotalBudget    float64 `json:"total_budget"`
+	TotalSpent     float64 `json:"total_spent"`
 	TotalRemaining float64 `json:"total_remaining"`
 	PercentageUsed float64 `json:"percentage_used"`
 	BudgetStatus   string  `json:"budget_status"` // "on_track", "warning", "over_budget"
@@ -38,9 +38,9 @@ func (b *Budget) GetBudgetStatus() string {
 	if b.Amount == 0 {
 		return "no_budget"
 	}
-	
+
 	percentage := (b.Spent / b.Amount) * 100
-	
+
 	if percentage >= 100 {
 		return "over_budget"
 	} else if percentage >= 80 {

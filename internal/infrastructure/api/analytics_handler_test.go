@@ -54,16 +54,16 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		router.GET("/analytics/metrics/:userId", handler.GetFinancialMetrics)
 
 		metrics := &domain.FinancialMetrics{
-			UserID:           1,
-			Period:           "monthly",
-			TotalIncome:      5000.0,
-			TotalExpenses:    3500.0,
-			NetIncome:        1500.0,
-			SavingsRate:      0.30,
-			ExpenseRatio:     0.70,
+			UserID:        1,
+			Period:        "monthly",
+			TotalIncome:   5000.0,
+			TotalExpenses: 3500.0,
+			NetIncome:     1500.0,
+			SavingsRate:   0.30,
+			ExpenseRatio:  0.70,
 			// BudgetUtilization field doesn't exist, removing
-			StartDate:        time.Now().AddDate(0, -1, 0),
-			EndDate:          time.Now(),
+			StartDate: time.Now().AddDate(0, -1, 0),
+			EndDate:   time.Now(),
 		}
 
 		mockService.On("GetFinancialMetrics", uint(1), "monthly", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(metrics, nil)
@@ -89,16 +89,16 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		router.GET("/analytics/metrics/:userId", handler.GetFinancialMetrics)
 
 		metrics := &domain.FinancialMetrics{
-			UserID:           1,
-			Period:           "weekly",
-			TotalIncome:      1200.0,
-			TotalExpenses:    800.0,
-			NetIncome:        400.0,
-			SavingsRate:      0.33,
-			ExpenseRatio:     0.67,
+			UserID:        1,
+			Period:        "weekly",
+			TotalIncome:   1200.0,
+			TotalExpenses: 800.0,
+			NetIncome:     400.0,
+			SavingsRate:   0.33,
+			ExpenseRatio:  0.67,
 			// BudgetUtilization field doesn't exist, removing
-			StartDate:        time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
-			EndDate:          time.Date(2024, 1, 31, 23, 59, 59, 0, time.UTC),
+			StartDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+			EndDate:   time.Date(2024, 1, 31, 23, 59, 59, 0, time.UTC),
 		}
 
 		startDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -330,13 +330,13 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		router.GET("/analytics/category/:userId/:categoryId", handler.GetCategoryAnalysis)
 
 		analysis := &domain.CategoryMetrics{
-			CategoryID:       5,
-			CategoryName:     "Food",
-			TotalAmount:      800.0,
-			TransactionCount: 25,
-			AverageAmount:    32.0,
+			CategoryID:        5,
+			CategoryName:      "Food",
+			TotalAmount:       800.0,
+			TransactionCount:  25,
+			AverageAmount:     32.0,
 			PercentageOfTotal: 22.8,
-			Trend:            "stable",
+			Trend:             "stable",
 		}
 
 		mockService.On("GetCategoryAnalysis", uint(1), uint(5), mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(analysis, nil)
@@ -362,13 +362,13 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		router.GET("/analytics/category/:userId/:categoryId", handler.GetCategoryAnalysis)
 
 		analysis := &domain.CategoryMetrics{
-			CategoryID:       3,
-			CategoryName:     "Transport",
-			TotalAmount:      300.0,
-			TransactionCount: 10,
-			AverageAmount:    30.0,
+			CategoryID:        3,
+			CategoryName:      "Transport",
+			TotalAmount:       300.0,
+			TransactionCount:  10,
+			AverageAmount:     30.0,
 			PercentageOfTotal: 8.5,
-			Trend:            "stable",
+			Trend:             "stable",
 		}
 
 		startDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -459,10 +459,10 @@ func TestAnalyticsHandler_GetDashboardSummary(t *testing.T) {
 				{CategoryName: "Food", TotalAmount: 800.0},
 				{CategoryName: "Transport", TotalAmount: 300.0},
 			},
-			RecentTransactions:  []domain.Transaction{{ID: 1, Amount: 150.0, Description: "Grocery shopping"}},
-			BudgetAlerts:        []domain.BudgetAlert{{BudgetID: 1, CategoryName: "Rent", BudgetAmount: 1200.0, SpentAmount: 1000.0, PercentageUsed: 83.3, AlertLevel: "warning", DaysRemaining: 5}},
-			FinancialGoals:      []domain.FinancialGoal{},
-			QuickStats:          domain.QuickStats{TotalTransactions: 25, AverageTransaction: 140.0, LargestExpense: 500.0, MostUsedCategory: "Food", DaysUntilNextBudget: 15, CashFlowTrend: "positive"},
+			RecentTransactions: []domain.Transaction{{ID: 1, Amount: 150.0, Description: "Grocery shopping"}},
+			BudgetAlerts:       []domain.BudgetAlert{{BudgetID: 1, CategoryName: "Rent", BudgetAmount: 1200.0, SpentAmount: 1000.0, PercentageUsed: 83.3, AlertLevel: "warning", DaysRemaining: 5}},
+			FinancialGoals:     []domain.FinancialGoal{},
+			QuickStats:         domain.QuickStats{TotalTransactions: 25, AverageTransaction: 140.0, LargestExpense: 500.0, MostUsedCategory: "Food", DaysUntilNextBudget: 15, CashFlowTrend: "positive"},
 		}
 
 		mockService.On("GetDashboardSummary", uint(1), "month").Return(dashboard, nil)
@@ -501,10 +501,10 @@ func TestAnalyticsHandler_GetDashboardSummary(t *testing.T) {
 			TopExpenseCategories: []domain.CategoryMetrics{
 				{CategoryName: "Food", TotalAmount: 200.0},
 			},
-			RecentTransactions:  []domain.Transaction{{ID: 2, Amount: 50.0, Description: "Coffee shop"}},
-			BudgetAlerts:        []domain.BudgetAlert{},
-			FinancialGoals:      []domain.FinancialGoal{},
-			QuickStats:          domain.QuickStats{TotalTransactions: 10, AverageTransaction: 80.0, LargestExpense: 200.0, MostUsedCategory: "Food", DaysUntilNextBudget: 20, CashFlowTrend: "stable"},
+			RecentTransactions: []domain.Transaction{{ID: 2, Amount: 50.0, Description: "Coffee shop"}},
+			BudgetAlerts:       []domain.BudgetAlert{},
+			FinancialGoals:     []domain.FinancialGoal{},
+			QuickStats:         domain.QuickStats{TotalTransactions: 10, AverageTransaction: 80.0, LargestExpense: 200.0, MostUsedCategory: "Food", DaysUntilNextBudget: 20, CashFlowTrend: "stable"},
 		}
 
 		mockService.On("GetDashboardSummary", uint(1), "week").Return(dashboard, nil)

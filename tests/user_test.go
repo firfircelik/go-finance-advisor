@@ -82,7 +82,7 @@ func TestGetUser(t *testing.T) {
 	r := gin.New()
 	r.GET("/users/:userId", userHandler.Get)
 
-	req := httptest.NewRequest("GET", "/users/1", nil)
+	req := httptest.NewRequest("GET", "/users/1", http.NoBody)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 

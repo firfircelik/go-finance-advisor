@@ -253,7 +253,7 @@ func TestAdvisorHandler_GetRealTimeAdvice(t *testing.T) {
 		}
 
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
-        mockMarketService.On("GeneratePersonalizedAdvice", user, 5000.0).Return(advice, nil)
+		mockMarketService.On("GeneratePersonalizedAdvice", user, 5000.0).Return(advice, nil)
 
 		req := httptest.NewRequest("GET", "/advice/realtime/1", nil)
 		w := httptest.NewRecorder()
@@ -345,14 +345,14 @@ func TestAdvisorHandler_GetMarketData(t *testing.T) {
 		router.GET("/market/data", handler.GetMarketData)
 
 		analysis := &pkg.MarketAnalysis{
-			MarketTrend:      "bullish",
-			Volatility:       "moderate",
-			SentimentScore:   0.75,
-			ConfidenceLevel:  0.85,
-			RiskScore:        0.4,
-			PredictedReturn:  0.08,
-			Recommendation:   "buy",
-			LastUpdated:      time.Now(),
+			MarketTrend:     "bullish",
+			Volatility:      "moderate",
+			SentimentScore:  0.75,
+			ConfidenceLevel: 0.85,
+			RiskScore:       0.4,
+			PredictedReturn: 0.08,
+			Recommendation:  "buy",
+			LastUpdated:     time.Now(),
 		}
 
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
@@ -520,13 +520,13 @@ func TestAdvisorHandler_GetMarketSummary(t *testing.T) {
 		router.GET("/market/summary", handler.GetMarketSummary)
 
 		summary := map[string]interface{}{
-			"overall_trend":     "bullish",
-			"market_cap":        50000000000000,
-			"volume_24h":        2000000000000,
-			"dominance_index":   0.45,
-			"fear_greed_index":  75,
-			"top_gainers":       []string{"AAPL", "TSLA"},
-			"top_losers":        []string{"META", "NFLX"},
+			"overall_trend":    "bullish",
+			"market_cap":       50000000000000,
+			"volume_24h":       2000000000000,
+			"dominance_index":  0.45,
+			"fear_greed_index": 75,
+			"top_gainers":      []string{"AAPL", "TSLA"},
+			"top_losers":       []string{"META", "NFLX"},
 		}
 
 		mockMarketService.On("GetMarketSummary").Return(summary, nil)
@@ -577,14 +577,14 @@ func TestAdvisorHandler_GetPortfolioRecommendations(t *testing.T) {
 		}
 
 		analysis := &pkg.MarketAnalysis{
-			MarketTrend:      "bullish",
-			SentimentScore:   0.75,
-			ConfidenceLevel:  0.85,
-			RiskScore:        0.4,
-			PredictedReturn:  0.08,
-			Volatility:       "moderate",
-			Recommendation:   "buy",
-			LastUpdated:      time.Now(),
+			MarketTrend:     "bullish",
+			SentimentScore:  0.75,
+			ConfidenceLevel: 0.85,
+			RiskScore:       0.4,
+			PredictedReturn: 0.08,
+			Volatility:      "moderate",
+			Recommendation:  "buy",
+			LastUpdated:     time.Now(),
 		}
 
 		recommendations := []domain.Recommendation{
@@ -667,7 +667,7 @@ func TestAdvisorHandler_GetAIRiskAssessment(t *testing.T) {
 		}
 
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
-        mockMarketService.On("PerformAIRiskAssessment", user, 5000.0, []string{"retirement", "wealth_building"}).Return(assessment, nil)
+		mockMarketService.On("PerformAIRiskAssessment", user, 5000.0, []string{"retirement", "wealth_building"}).Return(assessment, nil)
 
 		req := httptest.NewRequest("GET", "/ai/risk-assessment/1", nil)
 		w := httptest.NewRecorder()
@@ -728,14 +728,14 @@ func TestAdvisorHandler_GetAIMarketPrediction(t *testing.T) {
 		router.GET("/ai/market-prediction", handler.GetAIMarketPrediction)
 
 		analysis := &pkg.MarketAnalysis{
-			MarketTrend:      "bullish",
-			Volatility:       "moderate",
-			SentimentScore:   0.75,
-			ConfidenceLevel:  0.85,
-			RiskScore:        0.4,
-			PredictedReturn:  0.08,
-			Recommendation:   "buy",
-			LastUpdated:      time.Now(),
+			MarketTrend:     "bullish",
+			Volatility:      "moderate",
+			SentimentScore:  0.75,
+			ConfidenceLevel: 0.85,
+			RiskScore:       0.4,
+			PredictedReturn: 0.08,
+			Recommendation:  "buy",
+			LastUpdated:     time.Now(),
 		}
 
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
@@ -761,14 +761,14 @@ func TestAdvisorHandler_GetAIMarketPrediction(t *testing.T) {
 		router.GET("/ai/market-prediction", handler.GetAIMarketPrediction)
 
 		analysis := &pkg.MarketAnalysis{
-			MarketTrend:      "bearish",
-			Volatility:       "high",
-			SentimentScore:   0.25,
-			ConfidenceLevel:  0.90,
-			RiskScore:        0.8,
-			PredictedReturn:  -0.05,
-			Recommendation:   "sell",
-			LastUpdated:      time.Now(),
+			MarketTrend:     "bearish",
+			Volatility:      "high",
+			SentimentScore:  0.25,
+			ConfidenceLevel: 0.90,
+			RiskScore:       0.8,
+			PredictedReturn: -0.05,
+			Recommendation:  "sell",
+			LastUpdated:     time.Now(),
 		}
 
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
@@ -810,16 +810,16 @@ func TestAdvisorHandler_GetAIPortfolioOptimization(t *testing.T) {
 		}
 
 		analysis := &pkg.MarketAnalysis{
-			MarketTrend:      "bullish",
-			Volatility:       "moderate",
-			SentimentScore:   0.75,
-			PredictedReturn:  0.08,
-			LastUpdated:      time.Now(),
+			MarketTrend:     "bullish",
+			Volatility:      "moderate",
+			SentimentScore:  0.75,
+			PredictedReturn: 0.08,
+			LastUpdated:     time.Now(),
 		}
 
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
-        mockMarketService.On("PerformAIRiskAssessment", user, 5000.0, []string{"optimization"}).Return(assessment, nil)
-        mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
+		mockMarketService.On("PerformAIRiskAssessment", user, 5000.0, []string{"optimization"}).Return(assessment, nil)
+		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
 
 		req := httptest.NewRequest("GET", "/ai/portfolio-optimization/1", nil)
 		w := httptest.NewRecorder()
@@ -858,16 +858,16 @@ func TestAdvisorHandler_GetAIPortfolioOptimization(t *testing.T) {
 		}
 
 		analysis := &pkg.MarketAnalysis{
-			MarketTrend:      "bullish",
-			Volatility:       "high",
-			SentimentScore:   0.85,
-			PredictedReturn:  0.12,
-			LastUpdated:      time.Now(),
+			MarketTrend:     "bullish",
+			Volatility:      "high",
+			SentimentScore:  0.85,
+			PredictedReturn: 0.12,
+			LastUpdated:     time.Now(),
 		}
 
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
-        mockMarketService.On("PerformAIRiskAssessment", user, 8000.0, []string{"optimization"}).Return(assessment, nil)
-        mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
+		mockMarketService.On("PerformAIRiskAssessment", user, 8000.0, []string{"optimization"}).Return(assessment, nil)
+		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
 
 		req := httptest.NewRequest("GET", "/ai/portfolio-optimization/1?monthly_income=8000&current_value=100000", nil)
 		w := httptest.NewRecorder()

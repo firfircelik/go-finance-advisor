@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -64,12 +65,12 @@ func TestGenerateAdvice(t *testing.T) {
 	}
 
 	for _, transaction := range transactions {
-		err := transactionRepo.Create(transaction)
-		assert.NoError(t, err)
+		createErr := transactionRepo.Create(transaction)
+		assert.NoError(t, createErr)
 	}
 
 	// Test advice generation
-	req := httptest.NewRequest("GET", "/users/1/advice", nil)
+	req := httptest.NewRequest("GET", "/users/1/advice", http.NoBody)
 	w := httptest.NewRecorder()
 
 	gin.SetMode(gin.TestMode)
@@ -112,7 +113,7 @@ func TestGenerateAdviceConservative(t *testing.T) {
 	r := gin.New()
 	r.GET("/users/:userId/advice", advisorHandler.GetAdvice)
 
-	req, _ := http.NewRequest("GET", "/users/1/advice", nil)
+	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/users/1/advice", http.NoBody)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 

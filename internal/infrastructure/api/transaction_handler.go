@@ -1,410 +1,410 @@
 package api
 
 import (
-    "bytes"
-    "encoding/csv"
-    "fmt"
-    "net/http"
-    "strconv"
-    "time"
+	"bytes"
+	"encoding/csv"
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
 
-    "go-finance-advisor/internal/application"
-    "go-finance-advisor/internal/domain"
+	"go-finance-advisor/internal/application"
+	"go-finance-advisor/internal/domain"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 // TransactionServiceInterface defines the interface for transaction service
 type TransactionServiceInterface interface {
-    Create(transaction *domain.Transaction) error
-    GetByID(id uint) (*domain.Transaction, error)
-    ListWithFilters(userID uint, transactionType *string, categoryID *uint, startDate, endDate *time.Time, limit, offset int) ([]domain.Transaction, error)
-    Update(transaction *domain.Transaction) error
-    Delete(id uint) error
+	Create(transaction *domain.Transaction) error
+	GetByID(id uint) (*domain.Transaction, error)
+	ListWithFilters(userID uint, transactionType *string, categoryID *uint, startDate, endDate *time.Time, limit, offset int) ([]domain.Transaction, error)
+	Update(transaction *domain.Transaction) error
+	Delete(id uint) error
 }
 
 type TransactionHandler struct {
-    Service TransactionServiceInterface
+	Service TransactionServiceInterface
 }
 
 func NewTransactionHandler(service *application.TransactionService) *TransactionHandler {
-    return &TransactionHandler{Service: service}
+	return &TransactionHandler{Service: service}
 }
 
 type CreateTransactionRequest struct {
-    Amount      float64 `json:"amount" binding:"required,gt=0"`
-    Type        string  `json:"type" binding:"required,oneof=income expense"`
-    Description string  `json:"description" binding:"required,min=1,max=255"`
-    CategoryID  uint    `json:"category_id" binding:"required"`
-    Date        string  `json:"date,omitempty"`
+	Amount      float64 `json:"amount" binding:"required,gt=0"`
+	Type        string  `json:"type" binding:"required,oneof=income expense"`
+	Description string  `json:"description" binding:"required,min=1,max=255"`
+	CategoryID  uint    `json:"category_id" binding:"required"`
+	Date        string  `json:"date,omitempty"`
 }
 
 func (h *TransactionHandler) Create(c *gin.Context) {
-    userIDStr := c.Param("userId")
-    userID, err := strconv.ParseUint(userIDStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-        return
-    }
+	userIDStr := c.Param("userId")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-    var req CreateTransactionRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	var req CreateTransactionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-    // Parse date or use current date
-    var transactionDate time.Time
-    if req.Date != "" {
-        transactionDate, err = time.Parse("2006-01-02", req.Date)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use YYYY-MM-DD"})
-            return
-        }
-    } else {
-        transactionDate = time.Now()
-    }
+	// Parse date or use current date
+	var transactionDate time.Time
+	if req.Date != "" {
+		transactionDate, err = time.Parse("2006-01-02", req.Date)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use YYYY-MM-DD"})
+			return
+		}
+	} else {
+		transactionDate = time.Now()
+	}
 
-    transaction := &domain.Transaction{
-        UserID:      uint(userID),
-        Amount:      req.Amount,
-        Type:        req.Type,
-        Description: req.Description,
-        CategoryID:  req.CategoryID,
-        Date:        transactionDate,
-    }
+	transaction := &domain.Transaction{
+		UserID:      uint(userID),
+		Amount:      req.Amount,
+		Type:        req.Type,
+		Description: req.Description,
+		CategoryID:  req.CategoryID,
+		Date:        transactionDate,
+	}
 
-    if err := h.Service.Create(transaction); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create transaction"})
-        return
-    }
+	if err := h.Service.Create(transaction); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create transaction"})
+		return
+	}
 
-    c.JSON(http.StatusCreated, transaction)
+	c.JSON(http.StatusCreated, transaction)
 }
 
 func (h *TransactionHandler) List(c *gin.Context) {
-    userIDStr := c.Param("userId")
-    userID, err := strconv.ParseUint(userIDStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-        return
-    }
+	userIDStr := c.Param("userId")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-    // Get query parameters for filtering
-    transactionTypeStr := c.Query("type")
-    categoryIDStr := c.Query("category_id")
-    startDateStr := c.Query("start_date")
-    endDateStr := c.Query("end_date")
-    limitStr := c.DefaultQuery("limit", "100")
-    offsetStr := c.DefaultQuery("offset", "0")
+	// Get query parameters for filtering
+	transactionTypeStr := c.Query("type")
+	categoryIDStr := c.Query("category_id")
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+	limitStr := c.DefaultQuery("limit", "100")
+	offsetStr := c.DefaultQuery("offset", "0")
 
-    limit, err := strconv.Atoi(limitStr)
-    if err != nil || limit <= 0 {
-        limit = 100
-    }
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 100
+	}
 
-    offset, err := strconv.Atoi(offsetStr)
-    if err != nil || offset < 0 {
-        offset = 0
-    }
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil || offset < 0 {
+		offset = 0
+	}
 
-    var transactionType *string
-    if transactionTypeStr != "" {
-        transactionType = &transactionTypeStr
-    }
+	var transactionType *string
+	if transactionTypeStr != "" {
+		transactionType = &transactionTypeStr
+	}
 
-    var categoryID *uint
-    if categoryIDStr != "" {
-        catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
-            return
-        }
-        catIDUint := uint(catID)
-        categoryID = &catIDUint
-    }
+	var categoryID *uint
+	if categoryIDStr != "" {
+		catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+			return
+		}
+		catIDUint := uint(catID)
+		categoryID = &catIDUint
+	}
 
-    var startDate, endDate *time.Time
-    if startDateStr != "" {
-        start, err := time.Parse("2006-01-02", startDateStr)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
-            return
-        }
-        startDate = &start
-    }
+	var startDate, endDate *time.Time
+	if startDateStr != "" {
+		start, err := time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
+			return
+		}
+		startDate = &start
+	}
 
-    if endDateStr != "" {
-        end, err := time.Parse("2006-01-02", endDateStr)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
-            return
-        }
-        endDate = &end
-    }
+	if endDateStr != "" {
+		end, err := time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
+			return
+		}
+		endDate = &end
+	}
 
-    transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
-        return
-    }
+	transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
+		return
+	}
 
-    c.JSON(http.StatusOK, transactions)
+	c.JSON(http.StatusOK, transactions)
 }
 
 // GetByID retrieves a transaction by ID
 func (h *TransactionHandler) GetByID(c *gin.Context) {
-    idStr := c.Param("id")
-    id, err := strconv.ParseUint(idStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
-        return
-    }
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
+		return
+	}
 
-    transaction, err := h.Service.GetByID(uint(id))
-    if err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
-        return
-    }
+	transaction, err := h.Service.GetByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+		return
+	}
 
-    c.JSON(http.StatusOK, transaction)
+	c.JSON(http.StatusOK, transaction)
 }
 
 // Update updates an existing transaction
 func (h *TransactionHandler) Update(c *gin.Context) {
-    idStr := c.Param("id")
-    id, err := strconv.ParseUint(idStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
-        return
-    }
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
+		return
+	}
 
-    // Get existing transaction
-    existingTransaction, err := h.Service.GetByID(uint(id))
-    if err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
-        return
-    }
+	// Get existing transaction
+	existingTransaction, err := h.Service.GetByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+		return
+	}
 
-    var req CreateTransactionRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	var req CreateTransactionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-    // Parse date if provided
-    var transactionDate time.Time
-    if req.Date != "" {
-        transactionDate, err = time.Parse("2006-01-02", req.Date)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use YYYY-MM-DD"})
-            return
-        }
-    } else {
-        transactionDate = existingTransaction.Date
-    }
+	// Parse date if provided
+	var transactionDate time.Time
+	if req.Date != "" {
+		transactionDate, err = time.Parse("2006-01-02", req.Date)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use YYYY-MM-DD"})
+			return
+		}
+	} else {
+		transactionDate = existingTransaction.Date
+	}
 
-    // Update transaction fields
-    existingTransaction.Amount = req.Amount
-    existingTransaction.Type = req.Type
-    existingTransaction.Description = req.Description
-    existingTransaction.CategoryID = req.CategoryID
-    existingTransaction.Date = transactionDate
+	// Update transaction fields
+	existingTransaction.Amount = req.Amount
+	existingTransaction.Type = req.Type
+	existingTransaction.Description = req.Description
+	existingTransaction.CategoryID = req.CategoryID
+	existingTransaction.Date = transactionDate
 
-    if err := h.Service.Update(existingTransaction); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update transaction"})
-        return
-    }
+	if err := h.Service.Update(existingTransaction); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update transaction"})
+		return
+	}
 
-    c.JSON(http.StatusOK, existingTransaction)
+	c.JSON(http.StatusOK, existingTransaction)
 }
 
 // Delete deletes a transaction
 func (h *TransactionHandler) Delete(c *gin.Context) {
-    idStr := c.Param("id")
-    id, err := strconv.ParseUint(idStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
-        return
-    }
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
+		return
+	}
 
-    if err := h.Service.Delete(uint(id)); err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
-        return
-    }
+	if err := h.Service.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+		return
+	}
 
-    c.JSON(http.StatusOK, gin.H{"message": "Transaction deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Transaction deleted successfully"})
 }
 
 // ExportCSV exports transactions as CSV
 func (h *TransactionHandler) ExportCSV(c *gin.Context) {
-    userIDStr := c.Param("userId")
-    userID, err := strconv.ParseUint(userIDStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-        return
-    }
+	userIDStr := c.Param("userId")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-    // Get query parameters for filtering
-    transactionTypeStr := c.Query("type")
-    categoryIDStr := c.Query("category_id")
-    startDateStr := c.Query("start_date")
-    endDateStr := c.Query("end_date")
-    limitStr := c.DefaultQuery("limit", "100")
-    offsetStr := c.DefaultQuery("offset", "0")
+	// Get query parameters for filtering
+	transactionTypeStr := c.Query("type")
+	categoryIDStr := c.Query("category_id")
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+	limitStr := c.DefaultQuery("limit", "100")
+	offsetStr := c.DefaultQuery("offset", "0")
 
-    limit, _ := strconv.Atoi(limitStr)
-    offset, _ := strconv.Atoi(offsetStr)
+	limit, _ := strconv.Atoi(limitStr)
+	offset, _ := strconv.Atoi(offsetStr)
 
-    var transactionType *string
-    if transactionTypeStr != "" {
-        transactionType = &transactionTypeStr
-    }
+	var transactionType *string
+	if transactionTypeStr != "" {
+		transactionType = &transactionTypeStr
+	}
 
-    var categoryID *uint
-    if categoryIDStr != "" {
-        catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
-            return
-        }
-        catIDUint := uint(catID)
-        categoryID = &catIDUint
-    }
+	var categoryID *uint
+	if categoryIDStr != "" {
+		catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+			return
+		}
+		catIDUint := uint(catID)
+		categoryID = &catIDUint
+	}
 
-    var startDate, endDate *time.Time
-    if startDateStr != "" {
-        start, err := time.Parse("2006-01-02", startDateStr)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
-            return
-        }
-        startDate = &start
-    }
+	var startDate, endDate *time.Time
+	if startDateStr != "" {
+		start, err := time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
+			return
+		}
+		startDate = &start
+	}
 
-    if endDateStr != "" {
-        end, err := time.Parse("2006-01-02", endDateStr)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
-            return
-        }
-        endDate = &end
-    }
+	if endDateStr != "" {
+		end, err := time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
+			return
+		}
+		endDate = &end
+	}
 
-    transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
-        return
-    }
+	transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
+		return
+	}
 
-    // Create CSV buffer
-    var buf bytes.Buffer
-    writer := csv.NewWriter(&buf)
+	// Create CSV buffer
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
 
-    // Write CSV header
-    header := []string{"ID", "Amount", "Type", "Description", "Category ID", "Date", "Created At"}
-    if err := writer.Write(header); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write CSV header"})
-        return
-    }
+	// Write CSV header
+	header := []string{"ID", "Amount", "Type", "Description", "Category ID", "Date", "Created At"}
+	if err := writer.Write(header); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write CSV header"})
+		return
+	}
 
-    // Write transaction data
-    for _, transaction := range transactions {
-        record := []string{
-            fmt.Sprintf("%d", transaction.ID),
-            fmt.Sprintf("%.2f", transaction.Amount),
-            transaction.Type,
-            transaction.Description,
-            fmt.Sprintf("%d", transaction.CategoryID),
-            transaction.Date.Format("2006-01-02"),
-            transaction.CreatedAt.Format("2006-01-02 15:04:05"),
-        }
-        if err := writer.Write(record); err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write CSV record"})
-            return
-        }
-    }
+	// Write transaction data
+	for _, transaction := range transactions {
+		record := []string{
+			fmt.Sprintf("%d", transaction.ID),
+			fmt.Sprintf("%.2f", transaction.Amount),
+			transaction.Type,
+			transaction.Description,
+			fmt.Sprintf("%d", transaction.CategoryID),
+			transaction.Date.Format("2006-01-02"),
+			transaction.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+		if err := writer.Write(record); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write CSV record"})
+			return
+		}
+	}
 
-    writer.Flush()
-    if err := writer.Error(); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to flush CSV writer"})
-        return
-    }
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to flush CSV writer"})
+		return
+	}
 
-    // Set headers for file download
-    filename := fmt.Sprintf("transactions_%d_%s.csv", userID, time.Now().Format("20060102_150405"))
-    c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-    c.Header("Content-Type", "text/csv")
-    c.Header("Content-Length", fmt.Sprintf("%d", buf.Len()))
+	// Set headers for file download
+	filename := fmt.Sprintf("transactions_%d_%s.csv", userID, time.Now().Format("20060102_150405"))
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Length", fmt.Sprintf("%d", buf.Len()))
 
-    c.Data(http.StatusOK, "text/csv", buf.Bytes())
+	c.Data(http.StatusOK, "text/csv", buf.Bytes())
 }
 
 // ExportPDF exports transactions as PDF (simplified version)
 func (h *TransactionHandler) ExportPDF(c *gin.Context) {
-    userIDStr := c.Param("userId")
-    userID, err := strconv.ParseUint(userIDStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-        return
-    }
+	userIDStr := c.Param("userId")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-    // Get query parameters for filtering
-    transactionTypeStr := c.Query("type")
-    categoryIDStr := c.Query("category_id")
-    startDateStr := c.Query("start_date")
-    endDateStr := c.Query("end_date")
-    limitStr := c.DefaultQuery("limit", "100")
-    offsetStr := c.DefaultQuery("offset", "0")
+	// Get query parameters for filtering
+	transactionTypeStr := c.Query("type")
+	categoryIDStr := c.Query("category_id")
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+	limitStr := c.DefaultQuery("limit", "100")
+	offsetStr := c.DefaultQuery("offset", "0")
 
-    limit, _ := strconv.Atoi(limitStr)
-    offset, _ := strconv.Atoi(offsetStr)
+	limit, _ := strconv.Atoi(limitStr)
+	offset, _ := strconv.Atoi(offsetStr)
 
-    var transactionType *string
-    if transactionTypeStr != "" {
-        transactionType = &transactionTypeStr
-    }
+	var transactionType *string
+	if transactionTypeStr != "" {
+		transactionType = &transactionTypeStr
+	}
 
-    var categoryID *uint
-    if categoryIDStr != "" {
-        catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
-            return
-        }
-        catIDUint := uint(catID)
-        categoryID = &catIDUint
-    }
+	var categoryID *uint
+	if categoryIDStr != "" {
+		catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+			return
+		}
+		catIDUint := uint(catID)
+		categoryID = &catIDUint
+	}
 
-    var startDate, endDate *time.Time
-    if startDateStr != "" {
-        start, err := time.Parse("2006-01-02", startDateStr)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
-            return
-        }
-        startDate = &start
-    }
+	var startDate, endDate *time.Time
+	if startDateStr != "" {
+		start, err := time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
+			return
+		}
+		startDate = &start
+	}
 
-    if endDateStr != "" {
-        end, err := time.Parse("2006-01-02", endDateStr)
-        if err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
-            return
-        }
-        endDate = &end
-    }
+	if endDateStr != "" {
+		end, err := time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
+			return
+		}
+		endDate = &end
+	}
 
-    transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
-        return
-    }
+	transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
+		return
+	}
 
-    // Create simple HTML content for PDF (this is a basic implementation)
-    // In a real application, you would use a proper PDF library like gofpdf
-    var htmlContent bytes.Buffer
-    htmlContent.WriteString(`<!DOCTYPE html>
+	// Create simple HTML content for PDF (this is a basic implementation)
+	// In a real application, you would use a proper PDF library like gofpdf
+	var htmlContent bytes.Buffer
+	htmlContent.WriteString(`<!DOCTYPE html>
 <html>
 <head>
     <title>Transaction Report</title>
@@ -431,8 +431,8 @@ func (h *TransactionHandler) ExportPDF(c *gin.Context) {
             <th>Date</th>
         </tr>`)
 
-    for _, transaction := range transactions {
-        htmlContent.WriteString(fmt.Sprintf(`
+	for _, transaction := range transactions {
+		htmlContent.WriteString(fmt.Sprintf(`
         <tr>
             <td>%d</td>
             <td>%.2f</td>
@@ -441,24 +441,24 @@ func (h *TransactionHandler) ExportPDF(c *gin.Context) {
             <td>%d</td>
             <td>%s</td>
         </tr>`,
-            transaction.ID,
-            transaction.Amount,
-            transaction.Type,
-            transaction.Description,
-            transaction.CategoryID,
-            transaction.Date.Format("2006-01-02")))
-    }
+			transaction.ID,
+			transaction.Amount,
+			transaction.Type,
+			transaction.Description,
+			transaction.CategoryID,
+			transaction.Date.Format("2006-01-02")))
+	}
 
-    htmlContent.WriteString(`
+	htmlContent.WriteString(`
     </table>
 </body>
 </html>`)
 
-    // Set headers for file download
-    filename := fmt.Sprintf("transactions_%d_%s.html", userID, time.Now().Format("20060102_150405"))
-    c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-    c.Header("Content-Type", "text/html")
-    c.Header("Content-Length", fmt.Sprintf("%d", htmlContent.Len()))
+	// Set headers for file download
+	filename := fmt.Sprintf("transactions_%d_%s.html", userID, time.Now().Format("20060102_150405"))
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.Header("Content-Type", "text/html")
+	c.Header("Content-Length", fmt.Sprintf("%d", htmlContent.Len()))
 
-    c.Data(http.StatusOK, "text/html", htmlContent.Bytes())
+	c.Data(http.StatusOK, "text/html", htmlContent.Bytes())
 }

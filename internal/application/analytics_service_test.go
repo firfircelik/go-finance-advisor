@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"go-finance-advisor/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go-finance-advisor/internal/domain"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -107,7 +107,7 @@ func TestAnalyticsService_GetFinancialMetrics(t *testing.T) {
 		assert.Equal(t, 5000.00, metrics.TotalIncome)
 		assert.Equal(t, 2300.00, metrics.TotalExpenses)
 		assert.Equal(t, 2700.00, metrics.NetIncome)
-		assert.Equal(t, 0.54, metrics.SavingsRate) // 2700/5000
+		assert.Equal(t, 0.54, metrics.SavingsRate)  // 2700/5000
 		assert.Equal(t, 0.46, metrics.ExpenseRatio) // 2300/5000
 		assert.NotEmpty(t, metrics.CategoryBreakdown)
 		assert.NotEmpty(t, metrics.MonthlyTrends)
@@ -116,7 +116,7 @@ func TestAnalyticsService_GetFinancialMetrics(t *testing.T) {
 	t.Run("no transactions", func(t *testing.T) {
 		// Clean up transactions
 		db.Where("user_id = ?", userID).Delete(&domain.Transaction{})
-		
+
 		metrics, err := analyticsService.GetFinancialMetrics(userID, "month", startDate, endDate)
 		assert.NoError(t, err)
 		assert.NotNil(t, metrics)
@@ -393,13 +393,13 @@ func TestAnalyticsService_HelperMethods(t *testing.T) {
 	t.Run("calculate category breakdown", func(t *testing.T) {
 		var allTransactions []domain.Transaction
 		db.Preload("Category").Where("user_id = ?", userID).Find(&allTransactions)
-		
+
 		breakdown := analyticsService.calculateCategoryBreakdown(allTransactions)
 		assert.NotEmpty(t, breakdown)
-		
+
 		// Should have 2 categories
 		assert.Len(t, breakdown, 2)
-		
+
 		// Check that percentages are calculated
 		for _, category := range breakdown {
 			assert.True(t, category.PercentageOfTotal > 0)
@@ -410,10 +410,10 @@ func TestAnalyticsService_HelperMethods(t *testing.T) {
 	t.Run("calculate monthly trends", func(t *testing.T) {
 		trends := analyticsService.calculateMonthlyTrends(userID, startDate, endDate)
 		assert.NotEmpty(t, trends)
-		
+
 		// Should have at least one month
 		assert.True(t, len(trends) >= 1)
-		
+
 		for _, trend := range trends {
 			assert.NotEmpty(t, trend.Month)
 			assert.True(t, trend.Year > 0)
@@ -423,7 +423,7 @@ func TestAnalyticsService_HelperMethods(t *testing.T) {
 	t.Run("calculate daily averages", func(t *testing.T) {
 		var allTransactions []domain.Transaction
 		db.Where("user_id = ?", userID).Find(&allTransactions)
-		
+
 		averages := analyticsService.calculateDailyAverages(allTransactions, startDate, endDate)
 		assert.True(t, averages.DailyIncome > 0)
 		assert.True(t, averages.DailyExpenses > 0)
@@ -433,7 +433,7 @@ func TestAnalyticsService_HelperMethods(t *testing.T) {
 	t.Run("calculate weekly trends", func(t *testing.T) {
 		trends := analyticsService.calculateWeeklyTrends(userID, startDate, endDate)
 		assert.NotEmpty(t, trends)
-		
+
 		for _, trend := range trends {
 			assert.True(t, trend.WeekNumber > 0)
 			assert.False(t, trend.WeekStart.IsZero())

@@ -93,7 +93,7 @@ func TestBudgetService_CreateBudget(t *testing.T) {
 	t.Run("duplicate budget error", func(t *testing.T) {
 		// Clean up previous test data
 		db.Where("user_id = ?", userID).Delete(&domain.Budget{})
-		
+
 		// Create first budget
 		budget1 := &domain.Budget{
 			UserID:     userID,
@@ -248,7 +248,7 @@ func TestBudgetService_GetActiveBudgetsByUser(t *testing.T) {
 	t.Run("get only active budgets", func(t *testing.T) {
 		// Clean up previous test data
 		db.Where("user_id = ?", userID).Delete(&domain.Budget{})
-		
+
 		// Create test budgets
 		budgets := []*domain.Budget{
 			{
@@ -260,12 +260,12 @@ func TestBudgetService_GetActiveBudgetsByUser(t *testing.T) {
 				IsActive:   true, // Active and current
 			},
 		}
-		
+
 		for _, budget := range budgets {
 			err := db.Create(budget).Error
 			require.NoError(t, err)
 		}
-		
+
 		result, err := budgetService.GetActiveBudgetsByUser(userID)
 		assert.NoError(t, err)
 		assert.Len(t, result, 1) // Only the first budget should be returned
@@ -303,7 +303,7 @@ func TestBudgetService_UpdateBudgetSpending(t *testing.T) {
 		// Verify budget was updated
 		updated, err := budgetService.GetBudgetByID(budget.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, 150.00, updated.Spent) // 100 + 50
+		assert.Equal(t, 150.00, updated.Spent)     // 100 + 50
 		assert.Equal(t, 350.00, updated.Remaining) // 500 - 150
 	})
 
@@ -357,17 +357,17 @@ func TestBudgetService_GetBudgetSummary(t *testing.T) {
 		summary, err := budgetService.GetBudgetSummary(userID)
 		assert.NoError(t, err)
 		assert.NotNil(t, summary)
-		assert.Equal(t, 800.00, summary.TotalBudget)    // 500 + 300
-		assert.Equal(t, 650.00, summary.TotalSpent)     // 300 + 350
-		assert.Equal(t, 150.00, summary.TotalRemaining) // 800 - 650
-		assert.Equal(t, 81.25, summary.PercentageUsed)  // (650/800)*100
+		assert.Equal(t, 800.00, summary.TotalBudget)     // 500 + 300
+		assert.Equal(t, 650.00, summary.TotalSpent)      // 300 + 350
+		assert.Equal(t, 150.00, summary.TotalRemaining)  // 800 - 650
+		assert.Equal(t, 81.25, summary.PercentageUsed)   // (650/800)*100
 		assert.Equal(t, "warning", summary.BudgetStatus) // >80% but <100%
 	})
 
 	t.Run("over budget status", func(t *testing.T) {
 		// Clean up previous test data
 		db.Where("user_id = ?", userID).Delete(&domain.Budget{})
-		
+
 		// Create budget that's 100% over
 		overBudget := &domain.Budget{
 			UserID:     userID,
@@ -443,7 +443,7 @@ func TestBudgetService_RefreshBudgetSpending(t *testing.T) {
 		// Verify budget was updated with correct spent amount
 		updated, err := budgetService.GetBudgetByID(budget.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, 150.00, updated.Spent) // Only transactions within period: 100 + 50
+		assert.Equal(t, 150.00, updated.Spent)     // Only transactions within period: 100 + 50
 		assert.Equal(t, 350.00, updated.Remaining) // 500 - 150
 	})
 }

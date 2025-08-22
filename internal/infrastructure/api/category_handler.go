@@ -1,3 +1,4 @@
+// Package api provides HTTP handlers for the finance advisor application.
 package api
 
 import (
@@ -116,8 +117,8 @@ func (h *CategoryHandler) UpdateCategory(c *gin.Context) {
 	}
 
 	var req UpdateCategoryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})
 		return
 	}
 

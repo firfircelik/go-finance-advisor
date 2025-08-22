@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -59,7 +60,7 @@ func TestExportCSV(t *testing.T) {
 	router.GET("/users/:userId/transactions/export/csv", txHandler.ExportCSV)
 
 	// Create request
-	req, _ := http.NewRequest("GET", "/users/1/transactions/export/csv", nil)
+	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/users/1/transactions/export/csv", http.NoBody)
 	w := httptest.NewRecorder()
 
 	// Execute request
@@ -115,7 +116,7 @@ func TestExportPDF(t *testing.T) {
 	router.GET("/users/:userId/transactions/export/pdf", txHandler.ExportPDF)
 
 	// Create request
-	req, _ := http.NewRequest("GET", "/users/1/transactions/export/pdf", nil)
+	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/users/1/transactions/export/pdf", http.NoBody)
 	w := httptest.NewRecorder()
 
 	// Execute request

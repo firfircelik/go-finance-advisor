@@ -32,16 +32,16 @@ type App struct {
 
 func main() {
 	printHeader()
-	
+
 	// Initialize database
 	db := initializeDatabase()
 	if db == nil {
 		return
 	}
-	
+
 	// Initialize application
 	app := initializeApp(db)
-	
+
 	// Start main application loop
 	app.run()
 }
@@ -68,14 +68,14 @@ func initializeDatabase() *gorm.DB {
 		fmt.Printf("[ERROR] Database migration failed: %v\n", err)
 		return nil
 	}
-	
+
 	fmt.Println("[SUCCESS] Database initialized successfully")
 	return db
 }
 
 func initializeApp(db *gorm.DB) *App {
 	fmt.Println("[INFO] Initializing application services...")
-	
+
 	// Initialize services
 	userSvc := &application.UserService{DB: db}
 	txSvc := &application.TransactionService{DB: db}
@@ -111,7 +111,7 @@ func initializeApp(db *gorm.DB) *App {
 func (app *App) run() {
 	fmt.Println("\n[INFO] Application started successfully!")
 	fmt.Println("[INFO] Type 'help' at any time for assistance")
-	
+
 	// Main application loop
 	for {
 		if app.currentUser == nil {
@@ -153,7 +153,7 @@ func (app *App) login() {
 	fmt.Println("\n" + strings.Repeat("-", 30))
 	fmt.Println("         USER LOGIN")
 	fmt.Println(strings.Repeat("-", 30))
-	
+
 	fmt.Print("Email Address: ")
 	email, _ := app.reader.ReadString('\n')
 	email = strings.TrimSpace(email)
@@ -179,7 +179,7 @@ func (app *App) register() {
 	fmt.Println("\n" + strings.Repeat("-", 35))
 	fmt.Println("       CREATE NEW ACCOUNT")
 	fmt.Println(strings.Repeat("-", 35))
-	
+
 	fmt.Print("First Name: ")
 	firstName, _ := app.reader.ReadString('\n')
 	firstName = strings.TrimSpace(firstName)
@@ -259,21 +259,21 @@ func (app *App) addTransaction() {
 	fmt.Println("\n" + strings.Repeat("-", 40))
 	fmt.Println("         ADD NEW TRANSACTION")
 	fmt.Println(strings.Repeat("-", 40))
-	
+
 	// List available categories
 	categories, err := app.categorySvc.GetAllCategories()
 	if err != nil {
 		fmt.Printf("[ERROR] Could not retrieve categories: %v\n", err)
 		return
 	}
-	
+
 	fmt.Println("\n📂 Available Categories:")
 	fmt.Println(strings.Repeat("-", 30))
 	for _, cat := range categories {
 		fmt.Printf("  %d. %s (%s)\n", cat.ID, cat.Name, cat.Type)
 	}
 	fmt.Println(strings.Repeat("-", 30))
-	
+
 	fmt.Print("Category ID: ")
 	categoryIDStr, _ := app.reader.ReadString('\n')
 	categoryID, err := strconv.Atoi(strings.TrimSpace(categoryIDStr))
@@ -281,7 +281,7 @@ func (app *App) addTransaction() {
 		fmt.Println("[ERROR] Invalid category ID! Please enter a valid number.")
 		return
 	}
-	
+
 	fmt.Print("Amount: $")
 	amountStr, _ := app.reader.ReadString('\n')
 	amount, err := strconv.ParseFloat(strings.TrimSpace(amountStr), 64)
@@ -289,20 +289,20 @@ func (app *App) addTransaction() {
 		fmt.Println("[ERROR] Invalid amount! Please enter a valid number.")
 		return
 	}
-	
+
 	fmt.Print("Description: ")
 	description, _ := app.reader.ReadString('\n')
 	description = strings.TrimSpace(description)
-	
+
 	fmt.Print("Type (income/expense): ")
 	transactionType, _ := app.reader.ReadString('\n')
 	transactionType = strings.TrimSpace(transactionType)
-	
+
 	if transactionType != "income" && transactionType != "expense" {
 		fmt.Println("[ERROR] Invalid transaction type! Please enter 'income' or 'expense'.")
 		return
 	}
-	
+
 	transaction := &domain.Transaction{
 		UserID:      app.currentUser.ID,
 		CategoryID:  uint(categoryID),
@@ -311,13 +311,13 @@ func (app *App) addTransaction() {
 		Type:        transactionType,
 		Date:        time.Now(),
 	}
-	
+
 	err = app.txSvc.Create(transaction)
 	if err != nil {
 		fmt.Printf("[ERROR] Could not add transaction: %v\n", err)
 		return
 	}
-	
+
 	fmt.Println("\n[SUCCESS] ✅ Transaction added successfully!")
 	fmt.Printf("[INFO] Added %s of $%.2f for %s\n", transactionType, amount, description)
 }
@@ -326,33 +326,33 @@ func (app *App) listTransactions() {
 	fmt.Println("\n" + strings.Repeat("-", 50))
 	fmt.Println("           TRANSACTION HISTORY")
 	fmt.Println(strings.Repeat("-", 50))
-	
+
 	transactions, err := app.txSvc.List(app.currentUser.ID)
 	if err != nil {
 		fmt.Printf("[ERROR] Could not retrieve transactions: %v\n", err)
 		return
 	}
-	
+
 	if len(transactions) == 0 {
 		fmt.Println("\n📝 No transactions found.")
 		fmt.Println("[INFO] Start by adding your first transaction!")
 		return
 	}
-	
+
 	fmt.Printf("\n📊 Found %d transaction(s):\n\n", len(transactions))
 	fmt.Printf("%-4s %-12s %-10s %-20s %-12s\n", "ID", "Date", "Type", "Description", "Amount")
 	fmt.Println(strings.Repeat("-", 60))
-	
+
 	for _, tx := range transactions {
 		typeIcon := "💰"
 		if tx.Type == "expense" {
 			typeIcon = "💸"
 		}
 		fmt.Printf("%-4d %-12s %-10s %-20s %s$%.2f\n",
-			tx.ID, 
-			tx.Date.Format("2006-01-02"), 
-			tx.Type, 
-			tx.Description, 
+			tx.ID,
+			tx.Date.Format("2006-01-02"),
+			tx.Type,
+			tx.Description,
 			typeIcon,
 			tx.Amount)
 	}
@@ -391,21 +391,21 @@ func (app *App) createBudget() {
 	fmt.Println("\n" + strings.Repeat("-", 35))
 	fmt.Println("        CREATE NEW BUDGET")
 	fmt.Println(strings.Repeat("-", 35))
-	
+
 	// List available categories
 	categories, err := app.categorySvc.GetAllCategories()
 	if err != nil {
 		fmt.Printf("[ERROR] Could not retrieve categories: %v\n", err)
 		return
 	}
-	
+
 	fmt.Println("\n📂 Available Categories:")
 	fmt.Println(strings.Repeat("-", 25))
 	for _, cat := range categories {
 		fmt.Printf("  %d. %s (%s)\n", cat.ID, cat.Name, cat.Type)
 	}
 	fmt.Println(strings.Repeat("-", 25))
-	
+
 	fmt.Print("Category ID: ")
 	categoryIDStr, _ := app.reader.ReadString('\n')
 	categoryID, err := strconv.Atoi(strings.TrimSpace(categoryIDStr))
@@ -425,7 +425,7 @@ func (app *App) createBudget() {
 	fmt.Print("Period (monthly/weekly/yearly): ")
 	periodStr, _ := app.reader.ReadString('\n')
 	period := strings.TrimSpace(periodStr)
-	
+
 	if period != "monthly" && period != "weekly" && period != "yearly" {
 		fmt.Println("[ERROR] Invalid period! Please enter 'monthly', 'weekly', or 'yearly'.")
 		return
@@ -454,7 +454,7 @@ func (app *App) listBudgets() {
 	fmt.Println("\n" + strings.Repeat("-", 50))
 	fmt.Println("              BUDGET OVERVIEW")
 	fmt.Println(strings.Repeat("-", 50))
-	
+
 	budgets, err := app.budgetSvc.GetBudgetsByUser(app.currentUser.ID)
 	if err != nil {
 		fmt.Printf("[ERROR] Could not retrieve budgets: %v\n", err)
@@ -479,7 +479,7 @@ func (app *App) listBudgets() {
 		} else if budget.Spent > budget.Amount*0.8 {
 			status = "⚠️"
 		}
-		
+
 		fmt.Printf("%-4d %-15s %-10s $%-9.2f $%-8.2f $%-10.2f %s\n",
 			budget.ID,
 			budget.Category.Name,
@@ -579,24 +579,24 @@ func (app *App) incomeExpenseAnalysis() {
 	fmt.Println("\n" + strings.Repeat("-", 45))
 	fmt.Println("        INCOME-EXPENSE ANALYSIS")
 	fmt.Println(strings.Repeat("-", 45))
-	
+
 	// Get basic analytics
 	transactions, err := app.txSvc.List(app.currentUser.ID)
 	if err != nil {
 		fmt.Printf("[ERROR] Could not retrieve transactions: %v\n", err)
 		return
 	}
-	
+
 	if len(transactions) == 0 {
 		fmt.Println("\n📊 No transaction data available for analysis.")
 		fmt.Println("[INFO] Add some transactions to see your financial insights!")
 		return
 	}
-	
+
 	// Calculate basic metrics
 	var totalIncome, totalExpenses float64
 	incomeCount, expenseCount := 0, 0
-	
+
 	for _, tx := range transactions {
 		if tx.Type == "income" {
 			totalIncome += tx.Amount
@@ -606,26 +606,26 @@ func (app *App) incomeExpenseAnalysis() {
 			expenseCount++
 		}
 	}
-	
+
 	netWorth := totalIncome - totalExpenses
 	savingsRate := 0.0
 	if totalIncome > 0 {
 		savingsRate = ((totalIncome - totalExpenses) / totalIncome) * 100
 	}
-	
+
 	fmt.Println("\n💰 FINANCIAL OVERVIEW")
 	fmt.Println(strings.Repeat("-", 30))
 	fmt.Printf("Total Income:     $%.2f (%d transactions)\n", totalIncome, incomeCount)
 	fmt.Printf("Total Expenses:   $%.2f (%d transactions)\n", totalExpenses, expenseCount)
 	fmt.Printf("Net Worth:        $%.2f\n", netWorth)
 	fmt.Printf("Savings Rate:     %.1f%%\n", savingsRate)
-	
+
 	if netWorth > 0 {
 		fmt.Println("\n✅ Status: Positive cash flow - Great job!")
 	} else {
 		fmt.Println("\n⚠️  Status: Negative cash flow - Consider reducing expenses")
 	}
-	
+
 	fmt.Println("\n[INFO] Advanced analytics features coming soon!")
 }
 
@@ -655,10 +655,10 @@ func (app *App) investmentAdvice() {
 	fmt.Println("  4. Investment Calculator")
 	fmt.Println(strings.Repeat("-", 45))
 	fmt.Print("Please select an option (1-4): ")
-	
+
 	choice, _ := app.reader.ReadString('\n')
 	choice = strings.TrimSpace(choice)
-	
+
 	switch choice {
 	case "1":
 		app.portfolioRecommendations()
@@ -702,7 +702,7 @@ func (app *App) listCategories() {
 	fmt.Println("\n" + strings.Repeat("-", 40))
 	fmt.Println("         CATEGORY LIST")
 	fmt.Println(strings.Repeat("-", 40))
-	
+
 	categories, err := app.categorySvc.GetAllCategories()
 	if err != nil {
 		fmt.Printf("[ERROR] Could not retrieve categories: %v\n", err)
@@ -733,7 +733,7 @@ func (app *App) addCategory() {
 	fmt.Println("\n" + strings.Repeat("-", 35))
 	fmt.Println("        ADD NEW CATEGORY")
 	fmt.Println(strings.Repeat("-", 35))
-	
+
 	fmt.Print("Category Name: ")
 	name, _ := app.reader.ReadString('\n')
 	name = strings.TrimSpace(name)
@@ -765,16 +765,16 @@ func (app *App) portfolioRecommendations() {
 	fmt.Println("\n" + strings.Repeat("-", 45))
 	fmt.Println("       PORTFOLIO RECOMMENDATIONS")
 	fmt.Println(strings.Repeat("-", 45))
-	
+
 	// Get user's risk tolerance
 	riskLevel := app.currentUser.RiskTolerance
 	if riskLevel == "" {
 		riskLevel = "moderate" // Default
 	}
-	
+
 	caser := cases.Title(language.English)
 	fmt.Printf("\n👤 Your Risk Profile: %s\n\n", caser.String(riskLevel))
-	
+
 	switch riskLevel {
 	case "conservative":
 		fmt.Println("💼 CONSERVATIVE PORTFOLIO RECOMMENDATIONS:")
@@ -802,13 +802,13 @@ func (app *App) portfolioRecommendations() {
 		fmt.Println("\n📊 Expected Annual Return: 6-8%")
 		fmt.Println("⚠️  Risk Level: Medium")
 	}
-	
+
 	fmt.Println("\n💡 INVESTMENT TIPS:")
 	fmt.Println("• Diversify across asset classes")
 	fmt.Println("• Consider low-cost index funds")
 	fmt.Println("• Rebalance portfolio quarterly")
 	fmt.Println("• Invest consistently over time")
-	
+
 	fmt.Println("\n[INFO] This is general advice. Consult a financial advisor for personalized recommendations.")
 }
 
@@ -816,46 +816,58 @@ func (app *App) riskAssessment() {
 	fmt.Println("\n" + strings.Repeat("-", 40))
 	fmt.Println("         RISK ASSESSMENT")
 	fmt.Println(strings.Repeat("-", 40))
-	
+
 	fmt.Println("\n📋 Please answer the following questions to assess your risk tolerance:")
 	fmt.Println("\n1. What is your investment time horizon?")
 	fmt.Println("   a) Less than 3 years")
 	fmt.Println("   b) 3-10 years")
 	fmt.Println("   c) More than 10 years")
-	
+
 	fmt.Print("Your answer (a/b/c): ")
 	timeHorizon, _ := app.reader.ReadString('\n')
 	timeHorizon = strings.TrimSpace(strings.ToLower(timeHorizon))
-	
+
 	fmt.Println("\n2. How would you react to a 20% portfolio loss?")
 	fmt.Println("   a) Sell everything immediately")
 	fmt.Println("   b) Hold and wait for recovery")
 	fmt.Println("   c) Buy more at lower prices")
-	
+
 	fmt.Print("Your answer (a/b/c): ")
 	lossReaction, _ := app.reader.ReadString('\n')
 	lossReaction = strings.TrimSpace(strings.ToLower(lossReaction))
-	
+
 	fmt.Println("\n3. What is your primary investment goal?")
 	fmt.Println("   a) Capital preservation")
 	fmt.Println("   b) Steady income")
 	fmt.Println("   c) Long-term growth")
-	
+
 	fmt.Print("Your answer (a/b/c): ")
 	investmentGoal, _ := app.reader.ReadString('\n')
 	investmentGoal = strings.TrimSpace(strings.ToLower(investmentGoal))
-	
+
 	// Calculate risk score
 	score := 0
-	if timeHorizon == "c" { score += 2 }
-	if timeHorizon == "b" { score += 1 }
-	
-	if lossReaction == "c" { score += 2 }
-	if lossReaction == "b" { score += 1 }
-	
-	if investmentGoal == "c" { score += 2 }
-	if investmentGoal == "b" { score += 1 }
-	
+	if timeHorizon == "c" {
+		score += 2
+	}
+	if timeHorizon == "b" {
+		score += 1
+	}
+
+	if lossReaction == "c" {
+		score += 2
+	}
+	if lossReaction == "b" {
+		score += 1
+	}
+
+	if investmentGoal == "c" {
+		score += 2
+	}
+	if investmentGoal == "b" {
+		score += 1
+	}
+
 	// Determine risk profile
 	var riskProfile string
 	switch {
@@ -866,13 +878,13 @@ func (app *App) riskAssessment() {
 	default:
 		riskProfile = "aggressive"
 	}
-	
+
 	fmt.Println("\n" + strings.Repeat("-", 40))
 	fmt.Println("         ASSESSMENT RESULTS")
 	fmt.Println(strings.Repeat("-", 40))
 	fmt.Printf("\n🎯 Your Risk Profile: %s\n", strings.ToUpper(riskProfile))
 	fmt.Printf("📊 Risk Score: %d/6\n", score)
-	
+
 	switch riskProfile {
 	case "conservative":
 		fmt.Println("\n💼 CONSERVATIVE INVESTOR")
@@ -890,6 +902,6 @@ func (app *App) riskAssessment() {
 		fmt.Println("• Moderate risk tolerance")
 		fmt.Println("• Diversified approach")
 	}
-	
+
 	fmt.Println("\n[INFO] Would you like to update your risk profile? (Feature coming soon)")
 }

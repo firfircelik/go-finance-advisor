@@ -25,11 +25,11 @@ func (s *ExportService) ExportTransactions(userID uint, format domain.ExportForm
 	// Get transactions
 	var transactions []domain.Transaction
 	query := s.DB.Preload("Category").Where("user_id = ?", userID)
-	
+
 	if startDate != nil && endDate != nil {
 		query = query.Where("date BETWEEN ? AND ?", *startDate, *endDate)
 	}
-	
+
 	err := query.Order("date DESC").Find(&transactions).Error
 	if err != nil {
 		return nil, "", err

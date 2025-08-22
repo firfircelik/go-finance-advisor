@@ -7,49 +7,49 @@ import (
 
 // FinancialReport represents a comprehensive financial report
 type FinancialReport struct {
-	ID                      uint                    `json:"id" gorm:"primaryKey"`
-	UserID                  uint                    `json:"user_id" gorm:"not null;index"`
-	ReportType              string                  `json:"report_type" gorm:"not null"` // "monthly", "quarterly", "yearly", "custom"
-	StartDate               time.Time               `json:"start_date" gorm:"not null"`
-	EndDate                 time.Time               `json:"end_date" gorm:"not null"`
-	TotalIncome             float64                 `json:"total_income"`
-	TotalExpenses           float64                 `json:"total_expenses"`
-	NetIncome               float64                 `json:"net_income"`
-	SavingsRate             float64                 `json:"savings_rate"`
-	TransactionCount        int                     `json:"transaction_count"`
-	CategoryBreakdown       []CategoryMetrics       `json:"category_breakdown" gorm:"-"`
-	MonthlyTrends           []MonthlyTrend          `json:"monthly_trends" gorm:"-"`
-	BudgetPerformance       BudgetPerformanceMetrics `json:"budget_performance" gorm:"-"`
-	TopIncomeCategories     []CategoryMetrics       `json:"top_income_categories" gorm:"-"`
-	TopExpenseCategories    []CategoryMetrics       `json:"top_expense_categories" gorm:"-"`
-	Insights                []string                `json:"insights" gorm:"type:text"`
-	Recommendations         []string                `json:"recommendations" gorm:"type:text"`
-	GeneratedAt             time.Time               `json:"generated_at"`
-	CreatedAt               time.Time               `json:"created_at"`
-	UpdatedAt               time.Time               `json:"updated_at"`
+	ID                   uint                     `json:"id" gorm:"primaryKey"`
+	UserID               uint                     `json:"user_id" gorm:"not null;index"`
+	ReportType           string                   `json:"report_type" gorm:"not null"` // "monthly", "quarterly", "yearly", "custom"
+	StartDate            time.Time                `json:"start_date" gorm:"not null"`
+	EndDate              time.Time                `json:"end_date" gorm:"not null"`
+	TotalIncome          float64                  `json:"total_income"`
+	TotalExpenses        float64                  `json:"total_expenses"`
+	NetIncome            float64                  `json:"net_income"`
+	SavingsRate          float64                  `json:"savings_rate"`
+	TransactionCount     int                      `json:"transaction_count"`
+	CategoryBreakdown    []CategoryMetrics        `json:"category_breakdown" gorm:"-"`
+	MonthlyTrends        []MonthlyTrend           `json:"monthly_trends" gorm:"-"`
+	BudgetPerformance    BudgetPerformanceMetrics `json:"budget_performance" gorm:"-"`
+	TopIncomeCategories  []CategoryMetrics        `json:"top_income_categories" gorm:"-"`
+	TopExpenseCategories []CategoryMetrics        `json:"top_expense_categories" gorm:"-"`
+	Insights             []string                 `json:"insights" gorm:"type:text"`
+	Recommendations      []string                 `json:"recommendations" gorm:"type:text"`
+	GeneratedAt          time.Time                `json:"generated_at"`
+	CreatedAt            time.Time                `json:"created_at"`
+	UpdatedAt            time.Time                `json:"updated_at"`
 }
 
 // ReportSummary represents a lightweight report summary for listing
 type ReportSummary struct {
-	ID           uint      `json:"id"`
-	ReportType   string    `json:"report_type"`
-	StartDate    time.Time `json:"start_date"`
-	EndDate      time.Time `json:"end_date"`
-	TotalIncome  float64   `json:"total_income"`
-	TotalExpenses float64  `json:"total_expenses"`
-	NetIncome    float64   `json:"net_income"`
-	SavingsRate  float64   `json:"savings_rate"`
-	GeneratedAt  time.Time `json:"generated_at"`
+	ID            uint      `json:"id"`
+	ReportType    string    `json:"report_type"`
+	StartDate     time.Time `json:"start_date"`
+	EndDate       time.Time `json:"end_date"`
+	TotalIncome   float64   `json:"total_income"`
+	TotalExpenses float64   `json:"total_expenses"`
+	NetIncome     float64   `json:"net_income"`
+	SavingsRate   float64   `json:"savings_rate"`
+	GeneratedAt   time.Time `json:"generated_at"`
 }
 
 // ReportExportData represents data structure for report exports
 type ReportExportData struct {
-	Report      *FinancialReport `json:"report"`
-	Transactions []Transaction   `json:"transactions,omitempty"`
-	Budgets     []Budget        `json:"budgets,omitempty"`
-	Categories  []Category      `json:"categories,omitempty"`
-	ExportedAt  time.Time       `json:"exported_at"`
-	Format      string          `json:"format"`
+	Report       *FinancialReport `json:"report"`
+	Transactions []Transaction    `json:"transactions,omitempty"`
+	Budgets      []Budget         `json:"budgets,omitempty"`
+	Categories   []Category       `json:"categories,omitempty"`
+	ExportedAt   time.Time        `json:"exported_at"`
+	Format       string           `json:"format"`
 }
 
 // GetReportTitle returns a formatted title for the report

@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"go-finance-advisor/internal/application"
 	"go-finance-advisor/internal/domain"
-	"github.com/gin-gonic/gin"
 )
 
 // ExportServiceInterface defines the interface for export service
@@ -285,31 +285,31 @@ func (h *ExportHandler) GetExportFormats(c *gin.Context) {
 		},
 		"data_types": []map[string]interface{}{
 			{
-				"value":             "transactions",
-				"label":             "Transactions",
-				"description":       "Export transaction data",
-				"supported_formats": []string{"csv", "json"},
+				"value":               "transactions",
+				"label":               "Transactions",
+				"description":         "Export transaction data",
+				"supported_formats":   []string{"csv", "json"},
 				"supports_date_range": true,
 			},
 			{
-				"value":             "budgets",
-				"label":             "Budgets",
-				"description":       "Export budget data",
-				"supported_formats": []string{"csv", "json"},
+				"value":               "budgets",
+				"label":               "Budgets",
+				"description":         "Export budget data",
+				"supported_formats":   []string{"csv", "json"},
 				"supports_date_range": false,
 			},
 			{
-				"value":             "reports",
-				"label":             "Financial Reports",
-				"description":       "Export financial reports",
-				"supported_formats": []string{"csv", "json"},
+				"value":               "reports",
+				"label":               "Financial Reports",
+				"description":         "Export financial reports",
+				"supported_formats":   []string{"csv", "json"},
 				"supports_date_range": false,
 			},
 			{
-				"value":             "all",
-				"label":             "All Data",
-				"description":       "Export all financial data",
-				"supported_formats": []string{"json"},
+				"value":               "all",
+				"label":               "All Data",
+				"description":         "Export all financial data",
+				"supported_formats":   []string{"json"},
 				"supports_date_range": false,
 			},
 		},

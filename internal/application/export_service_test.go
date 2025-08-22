@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"go-finance-advisor/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go-finance-advisor/internal/domain"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -118,7 +118,7 @@ func TestExportService_ExportTransactions(t *testing.T) {
 		records, err := reader.ReadAll()
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(records), 2) // Header + at least 1 data row
-		
+
 		// Check header
 		header := records[0]
 		assert.Contains(t, header, "ID")
@@ -145,7 +145,7 @@ func TestExportService_ExportTransactions(t *testing.T) {
 	t.Run("export transactions with date range", func(t *testing.T) {
 		startDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-		
+
 		data, filename, err := service.ExportTransactions(userID, domain.ExportFormatJSON, &startDate, &endDate)
 		require.NoError(t, err)
 		assert.NotEmpty(t, data)
@@ -155,7 +155,7 @@ func TestExportService_ExportTransactions(t *testing.T) {
 		var transactions []domain.Transaction
 		err = json.Unmarshal(data, &transactions)
 		require.NoError(t, err)
-		
+
 		// Should only include January transactions
 		for _, tx := range transactions {
 			assert.True(t, tx.Date.After(startDate.Add(-time.Second)) && tx.Date.Before(endDate.Add(time.Second)))
@@ -172,7 +172,7 @@ func TestExportService_ExportTransactions(t *testing.T) {
 		data, filename, err := service.ExportTransactions(99999, domain.ExportFormatJSON, nil, nil)
 		require.NoError(t, err) // Should not error, just return empty data
 		assert.NotEmpty(t, filename)
-		
+
 		var transactions []domain.Transaction
 		err = json.Unmarshal(data, &transactions)
 		require.NoError(t, err)
@@ -197,7 +197,7 @@ func TestExportService_ExportBudgets(t *testing.T) {
 		records, err := reader.ReadAll()
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(records), 2) // Header + at least 1 data row
-		
+
 		// Check header
 		header := records[0]
 		assert.Contains(t, header, "ID")
@@ -244,7 +244,7 @@ func TestExportService_ExportAllData(t *testing.T) {
 		var exportData domain.ExportData
 		err = json.Unmarshal(data, &exportData)
 		require.NoError(t, err)
-		
+
 		assert.GreaterOrEqual(t, len(exportData.Transactions), 1)
 		assert.GreaterOrEqual(t, len(exportData.Budgets), 1)
 		assert.GreaterOrEqual(t, len(exportData.Categories), 0)

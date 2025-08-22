@@ -20,13 +20,13 @@ func NewBudgetService(db *gorm.DB) *BudgetService {
 func (s *BudgetService) CreateBudget(budget *domain.Budget) error {
 	// Check if budget already exists for this user, category, and period
 	var existingBudget domain.Budget
-	err := s.DB.Where("user_id = ? AND category_id = ? AND start_date <= ? AND end_date >= ? AND is_active = ?", 
+	err := s.DB.Where("user_id = ? AND category_id = ? AND start_date <= ? AND end_date >= ? AND is_active = ?",
 		budget.UserID, budget.CategoryID, budget.EndDate, budget.StartDate, true).First(&existingBudget).Error
-	
+
 	if err == nil {
 		return errors.New("budget already exists for this category and period")
 	}
-	
+
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
@@ -35,11 +35,11 @@ func (s *BudgetService) CreateBudget(budget *domain.Budget) error {
 	if budget.Period == "" {
 		budget.Period = "monthly"
 	}
-	
+
 	if budget.StartDate.IsZero() {
 		budget.StartDate = time.Now().Truncate(24 * time.Hour)
 	}
-	
+
 	if budget.EndDate.IsZero() {
 		// Set end date based on period
 		switch budget.Period {
@@ -91,7 +91,7 @@ func (s *BudgetService) GetBudgetsByUser(userID uint) ([]domain.Budget, error) {
 // GetActiveBudgetsByUser retrieves active budgets for a user
 func (s *BudgetService) GetActiveBudgetsByUser(userID uint) ([]domain.Budget, error) {
 	var budgets []domain.Budget
-	err := s.DB.Preload("Category").Where("user_id = ? AND is_active = ? AND end_date >= ?", 
+	err := s.DB.Preload("Category").Where("user_id = ? AND is_active = ? AND end_date >= ?",
 		userID, true, time.Now()).Order("created_at DESC").Find(&budgets).Error
 	return budgets, err
 }
@@ -115,9 +115,9 @@ func (s *BudgetService) DeleteBudget(budgetID uint) error {
 func (s *BudgetService) UpdateBudgetSpending(userID, categoryID uint, amount float64, transactionDate time.Time) error {
 	// Find active budgets that cover this transaction date
 	var budgets []domain.Budget
-	err := s.DB.Where("user_id = ? AND category_id = ? AND is_active = ? AND start_date <= ? AND end_date >= ?", 
+	err := s.DB.Where("user_id = ? AND category_id = ? AND is_active = ? AND start_date <= ? AND end_date >= ?",
 		userID, categoryID, true, transactionDate, transactionDate).Find(&budgets).Error
-	
+
 	if err != nil {
 		return err
 	}
@@ -135,9 +135,9 @@ func (s *BudgetService) UpdateBudgetSpending(userID, categoryID uint, amount flo
 // GetBudgetSummary calculates budget summary for a user
 func (s *BudgetService) GetBudgetSummary(userID uint) (*domain.BudgetSummary, error) {
 	var budgets []domain.Budget
-	err := s.DB.Where("user_id = ? AND is_active = ? AND end_date >= ?", 
+	err := s.DB.Where("user_id = ? AND is_active = ? AND end_date >= ?",
 		userID, true, time.Now()).Find(&budgets).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (s *BudgetService) GetBudgetSummary(userID uint) (*domain.BudgetSummary, er
 	for _, budget := range budgets {
 		totalBudget += budget.Amount
 		totalSpent += budget.Spent
-		
+
 		if budget.Spent > budget.Amount {
 			overBudgetCount++
 		}
@@ -181,7 +181,7 @@ func (s *BudgetService) GetBudgetSummary(userID uint) (*domain.BudgetSummary, er
 // GetBudgetsByCategory retrieves budgets for a specific category
 func (s *BudgetService) GetBudgetsByCategory(userID, categoryID uint) ([]domain.Budget, error) {
 	var budgets []domain.Budget
-	err := s.DB.Preload("Category").Where("user_id = ? AND category_id = ?", 
+	err := s.DB.Preload("Category").Where("user_id = ? AND category_id = ?",
 		userID, categoryID).Order("created_at DESC").Find(&budgets).Error
 	return budgets, err
 }
@@ -189,7 +189,7 @@ func (s *BudgetService) GetBudgetsByCategory(userID, categoryID uint) ([]domain.
 // GetBudgetsByPeriod retrieves budgets for a specific period
 func (s *BudgetService) GetBudgetsByPeriod(userID uint, startDate, endDate time.Time) ([]domain.Budget, error) {
 	var budgets []domain.Budget
-	err := s.DB.Preload("Category").Where("user_id = ? AND start_date <= ? AND end_date >= ?", 
+	err := s.DB.Preload("Category").Where("user_id = ? AND start_date <= ? AND end_date >= ?",
 		userID, endDate, startDate).Order("created_at DESC").Find(&budgets).Error
 	return budgets, err
 }
@@ -206,10 +206,10 @@ func (s *BudgetService) RefreshBudgetSpending(userID uint) error {
 		// Calculate actual spent amount from transactions
 		var totalSpent float64
 		err := s.DB.Model(&domain.Transaction{}).Where(
-			"user_id = ? AND category_id = ? AND date BETWEEN ? AND ?", 
+			"user_id = ? AND category_id = ? AND date BETWEEN ? AND ?",
 			budget.UserID, budget.CategoryID, budget.StartDate, budget.EndDate,
 		).Select("COALESCE(SUM(amount), 0)").Scan(&totalSpent).Error
-		
+
 		if err != nil {
 			continue
 		}

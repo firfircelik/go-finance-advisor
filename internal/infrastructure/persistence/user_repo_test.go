@@ -50,8 +50,8 @@ func TestUserRepository_Create(t *testing.T) {
 					WithArgs("john@example.com", "hashedpassword", "John", "Doe", 30, "moderate", sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectCommit()
-		},
-		wantErr: false,
+			},
+			wantErr: false,
 		},
 		{
 			name: "database error during creation",

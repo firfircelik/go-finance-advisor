@@ -16,8 +16,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-
-
 // MockTransactionService is a mock implementation of TransactionService
 type MockTransactionService struct {
 	mock.Mock
@@ -43,8 +41,6 @@ func (m *MockTransactionService) ListWithFilters(userID uint, transactionType *s
 	}
 	return args.Get(0).([]domain.Transaction), args.Error(1)
 }
-
-
 
 func (m *MockTransactionService) Update(transaction *domain.Transaction) error {
 	args := m.Called(transaction)

@@ -107,10 +107,10 @@ func TestBudget_Creation(t *testing.T) {
 
 func TestBudget_CalculateRemaining(t *testing.T) {
 	tests := []struct {
-		name      string
-		amount    float64
-		spent     float64
-		expected  float64
+		name     string
+		amount   float64
+		spent    float64
+		expected float64
 	}{
 		{"normal case", 1000.00, 300.00, 700.00},
 		{"no spending", 500.00, 0.00, 500.00},
@@ -261,7 +261,7 @@ func TestBudget_CategoryRelationship(t *testing.T) {
 
 		assert.Equal(t, uint(1), budget.CategoryID)
 		assert.Equal(t, uint(0), budget.Category.ID) // Zero value
-		assert.Equal(t, "", budget.Category.Name)     // Zero value
+		assert.Equal(t, "", budget.Category.Name)    // Zero value
 	})
 }
 

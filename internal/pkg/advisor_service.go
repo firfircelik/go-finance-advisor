@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"go-finance-advisor/internal/domain"
@@ -8,6 +9,25 @@ import (
 	"net/http"
 	"strings"
 	"time"
+)
+
+// Risk tolerance constants
+const (
+	riskToleranceConservative = "conservative"
+	riskToleranceModerate     = "moderate"
+	riskToleranceAggressive   = "aggressive"
+)
+
+// Risk level constants
+const (
+	riskLevelLow  = "low"
+	riskLevelHigh = "high"
+)
+
+// Market sentiment constants
+const (
+	marketSentimentBullish = "bullish"
+	marketSentimentBearish = "bearish"
 )
 
 // CryptoPrice represents cryptocurrency price data
@@ -87,13 +107,19 @@ func NewRealTimeMarketService() *RealTimeMarketService {
 
 // GetCryptoPrices fetches real-time cryptocurrency prices from CoinGecko
 func (s *RealTimeMarketService) GetCryptoPrices() ([]CryptoPrice, error) {
+	ctx := context.Background()
 	url := "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false"
 
-	resp, err := s.client.Get(url)
+	req, _ := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch crypto data: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			// Log error if needed, but don't fail the function
+		}
+	}()
 
 	var cryptos []CryptoPrice
 	if err := json.NewDecoder(resp.Body).Decode(&cryptos); err != nil {
@@ -113,18 +139,23 @@ func (s *RealTimeMarketService) GetStockPrices(symbols []string) ([]StockPrice, 
 		symbols = defaultSymbols
 	}
 
+	ctx := context.Background()
 	for _, symbol := range symbols {
 		// Using Alpha Vantage API (demo key - replace with real key for production)
 		url := fmt.Sprintf("https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=%s&apikey=demo", symbol)
 
-		resp, err := s.client.Get(url)
+		req, _ := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
+		resp, err := s.client.Do(req)
 		if err != nil {
 			continue // Skip failed requests
 		}
-		defer resp.Body.Close()
 
 		var data map[string]map[string]string
-		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			// Log error if needed, but don't fail the function
+		}
+		if err != nil {
 			continue
 		}
 
@@ -132,10 +163,18 @@ func (s *RealTimeMarketService) GetStockPrices(symbols []string) ([]StockPrice, 
 			var price, change, changePct float64
 			var volume int64
 
-			fmt.Sscanf(quote["05. price"], "%f", &price)
-			fmt.Sscanf(quote["09. change"], "%f", &change)
-			fmt.Sscanf(quote["10. change percent"], "%f%%", &changePct)
-			fmt.Sscanf(quote["06. volume"], "%d", &volume)
+			if _, err := fmt.Sscanf(quote["05. price"], "%f", &price); err != nil {
+				continue
+			}
+			if _, err := fmt.Sscanf(quote["09. change"], "%f", &change); err != nil {
+				continue
+			}
+			if _, err := fmt.Sscanf(quote["10. change percent"], "%f%%", &changePct); err != nil {
+				continue
+			}
+			if _, err := fmt.Sscanf(quote["06. volume"], "%d", &volume); err != nil {
+				continue
+			}
 
 			stocks = append(stocks, StockPrice{
 				Symbol:    symbol,
@@ -233,9 +272,9 @@ func (s *RealTimeMarketService) calculateMarketTrend(cryptos []CryptoPrice, stoc
 
 	avgChange := totalChange / float64(count)
 	if avgChange > 2 {
-		return "bullish"
+		return marketSentimentBullish
 	} else if avgChange < -2 {
-		return "bearish"
+		return marketSentimentBearish
 	}
 	return "neutral"
 }
@@ -263,29 +302,29 @@ func (s *RealTimeMarketService) calculateVolatility(cryptos []CryptoPrice, stock
 	}
 
 	if count == 0 {
-		return "low"
+		return riskLevelLow
 	}
 
 	avgVolatility := totalVolatility / float64(count)
 	if avgVolatility > 5 {
-		return "high"
+		return riskLevelHigh
 	} else if avgVolatility > 2 {
 		return "medium"
 	}
-	return "low"
+	return riskLevelLow
 }
 
 func (s *RealTimeMarketService) generateMarketRecommendation(trend, volatility string) string {
 	switch {
-	case trend == "bullish" && volatility == "low":
+	case trend == marketSentimentBullish && volatility == riskLevelLow:
 		return "Strong buy signal - favorable market conditions"
-	case trend == "bullish" && volatility == "medium":
+	case trend == marketSentimentBullish && volatility == "medium":
 		return "Buy signal with caution - monitor volatility"
-	case trend == "bullish" && volatility == "high":
+	case trend == marketSentimentBullish && volatility == riskLevelHigh:
 		return "Cautious buy - high volatility present"
-	case trend == "bearish" && volatility == "low":
+	case trend == marketSentimentBearish && volatility == riskLevelLow:
 		return "Hold or sell - stable downtrend"
-	case trend == "bearish" && volatility == "high":
+	case trend == marketSentimentBearish && volatility == riskLevelHigh:
 		return "Strong sell signal - high risk environment"
 	default:
 		return "Neutral - wait for clearer signals"
@@ -298,130 +337,134 @@ func (s *RealTimeMarketService) GenerateRecommendations(riskTolerance string, mo
 
 	switch riskTolerance {
 	case "conservative":
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "bond",
-			Symbol:       "GOVT",
-			Action:       "buy",
-			Reason:       "Low-risk government bonds for stable returns",
-			Confidence:   85.0,
-			CurrentPrice: investableAmount * 0.6,
-			RiskLevel:    "low",
-			Timeframe:    "long",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "stock",
-			Symbol:       "SPY",
-			Action:       "buy",
-			Reason:       "Blue chip stocks for steady growth",
-			Confidence:   80.0,
-			CurrentPrice: investableAmount * 0.3,
-			RiskLevel:    "low",
-			Timeframe:    "medium",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "crypto",
-			Symbol:       "BTC",
-			Action:       "buy",
-			Reason:       "Small allocation to Bitcoin for diversification",
-			Confidence:   70.0,
-			CurrentPrice: investableAmount * 0.1,
-			RiskLevel:    "medium",
-			Timeframe:    "long",
-			IsActive:     true,
-		})
+		recommendations = append(recommendations,
+			domain.Recommendation{
+				Type:         "bond",
+				Symbol:       "GOVT",
+				Action:       "buy",
+				Reason:       "Low-risk government bonds for stable returns",
+				Confidence:   85.0,
+				CurrentPrice: investableAmount * 0.6,
+				RiskLevel:    riskLevelLow,
+				Timeframe:    "long",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "stock",
+				Symbol:       "SPY",
+				Action:       "buy",
+				Reason:       "Blue chip stocks for steady growth",
+				Confidence:   80.0,
+				CurrentPrice: investableAmount * 0.3,
+				RiskLevel:    riskLevelLow,
+				Timeframe:    "medium",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "crypto",
+				Symbol:       "BTC",
+				Action:       "buy",
+				Reason:       "Small allocation to Bitcoin for diversification",
+				Confidence:   70.0,
+				CurrentPrice: investableAmount * 0.1,
+				RiskLevel:    "medium",
+				Timeframe:    "long",
+				IsActive:     true,
+			},
+		)
 
-	case "moderate":
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "stock",
-			Symbol:       "SPY",
-			Action:       "buy",
-			Reason:       "S&P 500 index funds for balanced growth",
-			Confidence:   85.0,
-			CurrentPrice: investableAmount * 0.4,
-			RiskLevel:    "medium",
-			Timeframe:    "medium",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "stock",
-			Symbol:       "QQQ",
-			Action:       "buy",
-			Reason:       "Growth stocks for higher potential returns",
-			Confidence:   75.0,
-			CurrentPrice: investableAmount * 0.3,
-			RiskLevel:    "medium",
-			Timeframe:    "medium",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "crypto",
-			Symbol:       "BTC",
-			Action:       "buy",
-			Reason:       "Bitcoin allocation for portfolio diversification",
-			Confidence:   70.0,
-			CurrentPrice: investableAmount * 0.2,
-			RiskLevel:    "high",
-			Timeframe:    "long",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "crypto",
-			Symbol:       "ETH",
-			Action:       "buy",
-			Reason:       "Ethereum for smart contract exposure",
-			Confidence:   65.0,
-			CurrentPrice: investableAmount * 0.1,
-			RiskLevel:    "high",
-			Timeframe:    "medium",
-		})
+	case riskToleranceModerate:
+		recommendations = append(recommendations,
+			domain.Recommendation{
+				Type:         "stock",
+				Symbol:       "SPY",
+				Action:       "buy",
+				Reason:       "S&P 500 index funds for balanced growth",
+				Confidence:   85.0,
+				CurrentPrice: investableAmount * 0.4,
+				RiskLevel:    "medium",
+				Timeframe:    "medium",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "stock",
+				Symbol:       "QQQ",
+				Action:       "buy",
+				Reason:       "Growth stocks for higher potential returns",
+				Confidence:   75.0,
+				CurrentPrice: investableAmount * 0.3,
+				RiskLevel:    "medium",
+				Timeframe:    "medium",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "crypto",
+				Symbol:       "BTC",
+				Action:       "buy",
+				Reason:       "Bitcoin allocation for portfolio diversification",
+				Confidence:   70.0,
+				CurrentPrice: investableAmount * 0.2,
+				RiskLevel:    riskLevelHigh,
+				Timeframe:    "long",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "crypto",
+				Symbol:       "ETH",
+				Action:       "buy",
+				Reason:       "Ethereum for smart contract exposure",
+				Confidence:   65.0,
+				CurrentPrice: investableAmount * 0.1,
+				RiskLevel:    riskLevelHigh,
+				Timeframe:    "medium",
+			})
 
-	case "aggressive":
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "stock",
-			Symbol:       "QQQ",
-			Action:       "buy",
-			Reason:       "High-growth technology stocks for maximum returns",
-			Confidence:   70.0,
-			CurrentPrice: investableAmount * 0.3,
-			RiskLevel:    "high",
-			Timeframe:    "short",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "crypto",
-			Symbol:       "BTC",
-			Action:       "buy",
-			Reason:       "Major Bitcoin allocation for high growth potential",
-			Confidence:   65.0,
-			CurrentPrice: investableAmount * 0.3,
-			RiskLevel:    "high",
-			Timeframe:    "medium",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "crypto",
-			Symbol:       "ETH",
-			Action:       "buy",
-			Reason:       "Ethereum for DeFi and smart contract exposure",
-			Confidence:   60.0,
-			CurrentPrice: investableAmount * 0.2,
-			RiskLevel:    "high",
-			Timeframe:    "medium",
-			IsActive:     true,
-		})
-		recommendations = append(recommendations, domain.Recommendation{
-			Type:         "crypto",
-			Symbol:       "ALT",
-			Action:       "buy",
-			Reason:       "Diversified altcoin portfolio for explosive growth",
-			Confidence:   50.0,
-			CurrentPrice: investableAmount * 0.2,
-			RiskLevel:    "high",
-			Timeframe:    "short",
-			IsActive:     true,
-		})
+	case riskToleranceAggressive:
+		recommendations = append(recommendations,
+			domain.Recommendation{
+				Type:         "stock",
+				Symbol:       "QQQ",
+				Action:       "buy",
+				Reason:       "High-growth technology stocks for maximum returns",
+				Confidence:   70.0,
+				CurrentPrice: investableAmount * 0.3,
+				RiskLevel:    riskLevelHigh,
+				Timeframe:    "short",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "crypto",
+				Symbol:       "BTC",
+				Action:       "buy",
+				Reason:       "Major Bitcoin allocation for high growth potential",
+				Confidence:   65.0,
+				CurrentPrice: investableAmount * 0.3,
+				RiskLevel:    riskLevelHigh,
+				Timeframe:    "medium",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "crypto",
+				Symbol:       "ETH",
+				Action:       "buy",
+				Reason:       "Ethereum for DeFi and smart contract exposure",
+				Confidence:   60.0,
+				CurrentPrice: investableAmount * 0.2,
+				RiskLevel:    riskLevelHigh,
+				Timeframe:    "medium",
+				IsActive:     true,
+			},
+			domain.Recommendation{
+				Type:         "crypto",
+				Symbol:       "ALT",
+				Action:       "buy",
+				Reason:       "Diversified altcoin portfolio for explosive growth",
+				Confidence:   50.0,
+				CurrentPrice: investableAmount * 0.2,
+				RiskLevel:    riskLevelHigh,
+				Timeframe:    "short",
+				IsActive:     true,
+			})
 	}
 
 	return recommendations
@@ -432,13 +475,13 @@ func (s *RealTimeMarketService) GenerateAdviceText(riskTolerance string, analysi
 		analysis.MarketTrend, analysis.Volatility, analysis.Recommendation)
 
 	switch riskTolerance {
-	case "conservative":
+	case riskToleranceConservative:
 		return baseAdvice + "As a conservative investor, focus on stable assets with guaranteed returns. " +
 			"Consider government bonds and established blue-chip stocks. Limit cryptocurrency exposure to 10% maximum."
-	case "moderate":
+	case riskToleranceModerate:
 		return baseAdvice + "With moderate risk tolerance, diversify across index funds and growth stocks. " +
 			"Cryptocurrency allocation of 20-30% can provide growth potential while maintaining stability."
-	case "aggressive":
+	case riskToleranceAggressive:
 		return baseAdvice + "As an aggressive investor, you can take advantage of high-growth opportunities. " +
 			"Consider higher cryptocurrency allocation and growth stocks, but monitor market conditions closely."
 	default:
@@ -633,18 +676,22 @@ func (s *RealTimeMarketService) predictMarketReturn(cryptos []CryptoPrice, stock
 }
 
 // PerformAIRiskAssessment conducts comprehensive AI-driven risk analysis for a user
-func (s *RealTimeMarketService) PerformAIRiskAssessment(user *domain.User, monthlyIncome float64, investmentGoals []string) (*AIRiskAssessment, error) {
+func (s *RealTimeMarketService) PerformAIRiskAssessment(
+	user *domain.User,
+	monthlyIncome float64,
+	investmentGoals []string,
+) (*AIRiskAssessment, error) {
 	// Analyze user factors
 	factors := []string{"age", "income", "risk_tolerance", "investment_goals", "market_conditions"}
 
 	// Calculate risk score based on multiple factors
-	riskScore := s.calculateUserRiskScore(user, monthlyIncome, investmentGoals)
+	riskScore := s.calculateUserRiskScore(user, monthlyIncome)
 
 	// Determine risk category
 	riskCategory := s.determineRiskCategory(riskScore)
 
 	// Generate recommended allocation
-	allocation := s.generateAIAllocation(riskScore, user.RiskTolerance)
+	allocation := s.generateAIAllocation(riskScore)
 
 	// Calculate confidence in assessment
 	confidenceScore := s.calculateAssessmentConfidence(user, monthlyIncome)
@@ -662,7 +709,7 @@ func (s *RealTimeMarketService) PerformAIRiskAssessment(user *domain.User, month
 
 // Helper functions for AI risk assessment
 
-func (s *RealTimeMarketService) calculateUserRiskScore(user *domain.User, monthlyIncome float64, goals []string) float64 {
+func (s *RealTimeMarketService) calculateUserRiskScore(user *domain.User, monthlyIncome float64) float64 {
 	var score float64
 
 	// Age factor (younger = higher risk tolerance)
@@ -705,7 +752,7 @@ func (s *RealTimeMarketService) determineRiskCategory(score float64) string {
 	return "low_risk_stable"
 }
 
-func (s *RealTimeMarketService) generateAIAllocation(riskScore float64, riskTolerance string) map[string]float64 {
+func (s *RealTimeMarketService) generateAIAllocation(riskScore float64) map[string]float64 {
 	allocation := make(map[string]float64)
 
 	if riskScore >= 0.7 {

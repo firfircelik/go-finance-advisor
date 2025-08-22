@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"go-finance-advisor/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go-finance-advisor/internal/domain"
 )
 
 // MockReportsService is a mock implementation of ReportsService
@@ -51,12 +51,12 @@ func TestReportsHandler_GenerateMonthlyReport(t *testing.T) {
 	t.Run("successful monthly report generation", func(t *testing.T) {
 		handler, mockService := setupReportsHandler()
 		expectedReport := &domain.FinancialReport{
-			ID:          1,
-			UserID:      1,
-			ReportType:  "monthly",
-			TotalIncome: 5000.00,
+			ID:            1,
+			UserID:        1,
+			ReportType:    "monthly",
+			TotalIncome:   5000.00,
 			TotalExpenses: 3000.00,
-			NetIncome:   2000.00,
+			NetIncome:     2000.00,
 		}
 
 		mockService.On("GenerateMonthlyReport", uint(1), 2023, 6).Return(expectedReport, nil)
@@ -174,12 +174,12 @@ func TestReportsHandler_GenerateQuarterlyReport(t *testing.T) {
 	t.Run("successful quarterly report generation", func(t *testing.T) {
 		handler, mockService := setupReportsHandler()
 		expectedReport := &domain.FinancialReport{
-			ID:          1,
-			UserID:      1,
-			ReportType:  "quarterly",
-			TotalIncome: 15000.00,
+			ID:            1,
+			UserID:        1,
+			ReportType:    "quarterly",
+			TotalIncome:   15000.00,
 			TotalExpenses: 9000.00,
-			NetIncome:   6000.00,
+			NetIncome:     6000.00,
 		}
 
 		mockService.On("GenerateQuarterlyReport", uint(1), 2023, 2).Return(expectedReport, nil)
@@ -297,12 +297,12 @@ func TestReportsHandler_GenerateYearlyReport(t *testing.T) {
 	t.Run("successful yearly report generation", func(t *testing.T) {
 		handler, mockService := setupReportsHandler()
 		expectedReport := &domain.FinancialReport{
-			ID:          1,
-			UserID:      1,
-			ReportType:  "yearly",
-			TotalIncome: 60000.00,
+			ID:            1,
+			UserID:        1,
+			ReportType:    "yearly",
+			TotalIncome:   60000.00,
 			TotalExpenses: 36000.00,
-			NetIncome:   24000.00,
+			NetIncome:     24000.00,
 		}
 
 		mockService.On("GenerateYearlyReport", uint(1), 2023).Return(expectedReport, nil)
@@ -397,12 +397,12 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		startDate := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2023, 6, 30, 0, 0, 0, 0, time.UTC)
 		expectedReport := &domain.FinancialReport{
-			ID:          1,
-			UserID:      1,
-			ReportType:  "custom",
-			TotalIncome: 30000.00,
+			ID:            1,
+			UserID:        1,
+			ReportType:    "custom",
+			TotalIncome:   30000.00,
 			TotalExpenses: 18000.00,
-			NetIncome:   12000.00,
+			NetIncome:     12000.00,
 		}
 
 		mockService.On("GenerateCustomReport", uint(1), startDate, endDate).Return(expectedReport, nil)

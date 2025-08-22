@@ -117,7 +117,7 @@ func TestListTransactions(t *testing.T) {
 	}
 
 	// Test listing transactions
-	req := httptest.NewRequest("GET", "/users/1/transactions", nil)
+	req := httptest.NewRequest("GET", "/users/1/transactions", http.NoBody)
 	w := httptest.NewRecorder()
 
 	gin.SetMode(gin.TestMode)

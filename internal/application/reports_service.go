@@ -104,23 +104,23 @@ func (s *ReportsService) generateReport(userID uint, reportType string, startDat
 	recommendations := s.generateRecommendations(savingsRate, categoryBreakdown, budgetPerformance)
 
 	report := &domain.FinancialReport{
-		UserID:                  userID,
-		ReportType:              reportType,
-		StartDate:               startDate,
-		EndDate:                 endDate,
-		TotalIncome:             totalIncome,
-		TotalExpenses:           totalExpenses,
-		NetIncome:               netIncome,
-		SavingsRate:             savingsRate,
-		TransactionCount:        transactionCount,
-		CategoryBreakdown:       categoryBreakdown,
-		MonthlyTrends:           monthlyTrends,
-		BudgetPerformance:       budgetPerformance,
-		TopIncomeCategories:     topIncomeCategories,
-		TopExpenseCategories:    topExpenseCategories,
-		Insights:                insights,
-		Recommendations:         recommendations,
-		GeneratedAt:             time.Now(),
+		UserID:               userID,
+		ReportType:           reportType,
+		StartDate:            startDate,
+		EndDate:              endDate,
+		TotalIncome:          totalIncome,
+		TotalExpenses:        totalExpenses,
+		NetIncome:            netIncome,
+		SavingsRate:          savingsRate,
+		TransactionCount:     transactionCount,
+		CategoryBreakdown:    categoryBreakdown,
+		MonthlyTrends:        monthlyTrends,
+		BudgetPerformance:    budgetPerformance,
+		TopIncomeCategories:  topIncomeCategories,
+		TopExpenseCategories: topExpenseCategories,
+		Insights:             insights,
+		Recommendations:      recommendations,
+		GeneratedAt:          time.Now(),
 	}
 
 	return report, nil
@@ -136,14 +136,14 @@ func (s *ReportsService) calculateCategoryBreakdown(transactions []domain.Transa
 
 		if _, exists := categoryMap[tx.CategoryID]; !exists {
 			categoryMap[tx.CategoryID] = &domain.CategoryMetrics{
-			CategoryID:       tx.CategoryID,
-			CategoryName:     tx.Category.Name,
-			TotalAmount:      0,
-			PercentageOfTotal: 0,
-			TransactionCount: 0,
-			AverageAmount:    0,
-			Trend:           "stable",
-		}
+				CategoryID:        tx.CategoryID,
+				CategoryName:      tx.Category.Name,
+				TotalAmount:       0,
+				PercentageOfTotal: 0,
+				TransactionCount:  0,
+				AverageAmount:     0,
+				Trend:             "stable",
+			}
 		}
 
 		categoryMap[tx.CategoryID].TotalAmount += tx.Amount
@@ -196,11 +196,11 @@ func (s *ReportsService) calculateMonthlyTrends(userID uint, startDate, endDate 
 		}
 
 		trend := domain.MonthlyTrend{
-			Month:           current.Format("2006-01"),
-			Income:          income,
-			Expenses:        expenses,
-			NetIncome:       income - expenses,
-			SavingsRate:     0,
+			Month:       current.Format("2006-01"),
+			Income:      income,
+			Expenses:    expenses,
+			NetIncome:   income - expenses,
+			SavingsRate: 0,
 		}
 
 		trends = append(trends, trend)
@@ -244,10 +244,10 @@ func (s *ReportsService) calculateBudgetPerformance(userID uint, startDate, endD
 	}
 
 	return domain.BudgetPerformanceMetrics{
-		TotalBudgeted:        totalBudget,
-		TotalSpent:           totalSpent,
-		Variance:             totalBudget - totalSpent,
-		VariancePercentage:   ((totalBudget - totalSpent) / totalBudget) * 100,
+		TotalBudgeted:         totalBudget,
+		TotalSpent:            totalSpent,
+		Variance:              totalBudget - totalSpent,
+		VariancePercentage:    ((totalBudget - totalSpent) / totalBudget) * 100,
 		CategoriesUnderBudget: budgetsOnTrack,
 		CategoriesOverBudget:  budgetsOverspent,
 	}

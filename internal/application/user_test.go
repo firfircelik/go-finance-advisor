@@ -31,7 +31,7 @@ func TestUserService_Register(t *testing.T) {
 
 	t.Run("successful registration", func(t *testing.T) {
 		user, err := userService.Register("test@example.com", "password123", "John", "Doe")
-		
+
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, "test@example.com", user.Email)
@@ -39,7 +39,7 @@ func TestUserService_Register(t *testing.T) {
 		assert.Equal(t, "Doe", user.LastName)
 		assert.Equal(t, "moderate", user.RiskTolerance)
 		assert.NotEmpty(t, user.Password)
-		
+
 		// Verify password is hashed
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte("password123"))
 		assert.NoError(t, err)
@@ -49,10 +49,10 @@ func TestUserService_Register(t *testing.T) {
 		// First registration
 		_, err := userService.Register("duplicate@example.com", "password123", "Jane", "Doe")
 		assert.NoError(t, err)
-		
+
 		// Second registration with same email
 		user, err := userService.Register("duplicate@example.com", "password456", "John", "Smith")
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, user)
 		assert.Contains(t, err.Error(), "user already exists")
@@ -60,7 +60,7 @@ func TestUserService_Register(t *testing.T) {
 
 	t.Run("empty fields", func(t *testing.T) {
 		user, err := userService.Register("", "", "", "")
-		
+
 		// Should still create user but with empty fields
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
@@ -80,7 +80,7 @@ func TestUserService_Login(t *testing.T) {
 
 	t.Run("successful login", func(t *testing.T) {
 		user, err := userService.Login(testEmail, testPassword)
-		
+
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, testEmail, user.Email)
@@ -90,7 +90,7 @@ func TestUserService_Login(t *testing.T) {
 
 	t.Run("invalid email", func(t *testing.T) {
 		user, err := userService.Login("nonexistent@example.com", testPassword)
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, user)
 		assert.Contains(t, err.Error(), "invalid credentials")
@@ -98,7 +98,7 @@ func TestUserService_Login(t *testing.T) {
 
 	t.Run("invalid password", func(t *testing.T) {
 		user, err := userService.Login(testEmail, "wrongpassword")
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, user)
 		assert.Contains(t, err.Error(), "invalid credentials")
@@ -106,7 +106,7 @@ func TestUserService_Login(t *testing.T) {
 
 	t.Run("empty credentials", func(t *testing.T) {
 		user, err := userService.Login("", "")
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, user)
 		assert.Contains(t, err.Error(), "invalid credentials")
@@ -124,7 +124,7 @@ func TestUserService_GetByEmail(t *testing.T) {
 
 	t.Run("existing user", func(t *testing.T) {
 		user, err := userService.GetByEmail(testEmail)
-		
+
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, createdUser.ID, user.ID)
@@ -135,14 +135,14 @@ func TestUserService_GetByEmail(t *testing.T) {
 
 	t.Run("non-existing user", func(t *testing.T) {
 		user, err := userService.GetByEmail("nonexistent@example.com")
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, user)
 	})
 
 	t.Run("empty email", func(t *testing.T) {
 		user, err := userService.GetByEmail("")
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, user)
 	})
@@ -158,7 +158,7 @@ func TestUserService_GetByID(t *testing.T) {
 
 	t.Run("existing user", func(t *testing.T) {
 		user, err := userService.GetByID(createdUser.ID)
-		
+
 		assert.NoError(t, err)
 		assert.Equal(t, createdUser.ID, user.ID)
 		assert.Equal(t, "getbyid@example.com", user.Email)
@@ -168,7 +168,7 @@ func TestUserService_GetByID(t *testing.T) {
 
 	t.Run("non-existing user", func(t *testing.T) {
 		user, err := userService.GetByID(99999)
-		
+
 		assert.Error(t, err)
 		assert.Equal(t, uint(0), user.ID)
 	})
@@ -186,12 +186,12 @@ func TestUserService_Create(t *testing.T) {
 			LastName:      "Test",
 			RiskTolerance: "aggressive",
 		}
-		
+
 		err := userService.Create(user)
-		
+
 		assert.NoError(t, err)
 		assert.NotZero(t, user.ID)
-		
+
 		// Verify user was created
 		retrievedUser, err := userService.GetByEmail("create@example.com")
 		assert.NoError(t, err)
@@ -205,17 +205,17 @@ func TestUserService_Create(t *testing.T) {
 			FirstName: "User",
 			LastName:  "One",
 		}
-		
+
 		err := userService.Create(user1)
 		assert.NoError(t, err)
-		
+
 		user2 := &domain.User{
 			Email:     "duplicate@example.com",
 			Password:  "password2",
 			FirstName: "User",
 			LastName:  "Two",
 		}
-		
+
 		err = userService.Create(user2)
 		assert.Error(t, err) // Should fail due to unique constraint
 	})
@@ -233,10 +233,10 @@ func TestUserService_Update(t *testing.T) {
 		user.FirstName = "Updated"
 		user.LastName = "Name"
 		user.RiskTolerance = "conservative"
-		
+
 		err := userService.Update(user)
 		assert.NoError(t, err)
-		
+
 		// Verify update
 		updatedUser, err := userService.GetByID(user.ID)
 		assert.NoError(t, err)
@@ -252,7 +252,7 @@ func TestUserService_Update(t *testing.T) {
 			FirstName: "Non",
 			LastName:  "Existent",
 		}
-		
+
 		err := userService.Update(nonExistentUser)
 		// GORM will create a new record if ID doesn't exist
 		assert.NoError(t, err)

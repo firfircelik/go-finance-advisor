@@ -12,15 +12,15 @@ import (
 
 func TestFetchMarketData(t *testing.T) {
 	tests := []struct {
-		name                string
-		bitcoinResponse     string
-		bitcoinStatusCode   int
-		sp500Response       string
-		sp500StatusCode     int
-		expectedBitcoinErr  bool
-		expectedSP500Err    bool
-		expectedBitcoinGt   float64
-		expectedSP500Gt     float64
+		name               string
+		bitcoinResponse    string
+		bitcoinStatusCode  int
+		sp500Response      string
+		sp500StatusCode    int
+		expectedBitcoinErr bool
+		expectedSP500Err   bool
+		expectedBitcoinGt  float64
+		expectedSP500Gt    float64
 	}{
 		{
 			name: "successful fetch both APIs",
@@ -50,8 +50,8 @@ func TestFetchMarketData(t *testing.T) {
 					"05. price": "4500.75"
 				}
 			}`,
-			sp500StatusCode:  http.StatusOK,
-			expectedSP500Gt:  4500.0,
+			sp500StatusCode:   http.StatusOK,
+			expectedSP500Gt:   4500.0,
 			expectedBitcoinGt: 0.0, // Should use fallback
 		},
 		{
@@ -79,16 +79,16 @@ func TestFetchMarketData(t *testing.T) {
 				"Error Message": "Service unavailable"
 			}`,
 			sp500StatusCode:   http.StatusServiceUnavailable,
-			expectedBitcoinGt: 0.0, // Should use fallback
+			expectedBitcoinGt: 0.0,    // Should use fallback
 			expectedSP500Gt:   4000.0, // Should use fallback
 		},
 		{
-			name: "invalid JSON responses",
-			bitcoinResponse: `invalid json`,
+			name:              "invalid JSON responses",
+			bitcoinResponse:   `invalid json`,
 			bitcoinStatusCode: http.StatusOK,
-			sp500Response: `invalid json`,
+			sp500Response:     `invalid json`,
 			sp500StatusCode:   http.StatusOK,
-			expectedBitcoinGt: 0.0, // Should use fallback
+			expectedBitcoinGt: 0.0,    // Should use fallback
 			expectedSP500Gt:   4000.0, // Should use fallback
 		},
 		{
@@ -105,7 +105,7 @@ func TestFetchMarketData(t *testing.T) {
 				}
 			}`,
 			sp500StatusCode:   http.StatusOK,
-			expectedBitcoinGt: 0.0, // Should use fallback
+			expectedBitcoinGt: 0.0,    // Should use fallback
 			expectedSP500Gt:   4000.0, // Should use fallback
 		},
 	}

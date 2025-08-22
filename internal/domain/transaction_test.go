@@ -226,7 +226,7 @@ func TestTransaction_CategoryRelationship(t *testing.T) {
 
 		assert.Equal(t, uint(1), transaction.CategoryID)
 		assert.Equal(t, uint(0), transaction.Category.ID) // Zero value
-		assert.Equal(t, "", transaction.Category.Name)     // Zero value
+		assert.Equal(t, "", transaction.Category.Name)    // Zero value
 	})
 }
 

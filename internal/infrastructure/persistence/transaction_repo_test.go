@@ -96,8 +96,8 @@ func TestTransactionRepository_ListByUser(t *testing.T) {
 			userID: 1,
 			setup: func(mock sqlmock.Sqlmock) {
 				rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "user_id", "category_id", "amount", "description", "type", "date"}).
-				AddRow(1, testDate, testDate, nil, 1, 1, 100.50, "Grocery shopping", "expense", testDate).
-				AddRow(2, testDate, testDate, nil, 1, 2, 2500.00, "Monthly salary", "income", testDate)
+					AddRow(1, testDate, testDate, nil, 1, 1, 100.50, "Grocery shopping", "expense", testDate).
+					AddRow(2, testDate, testDate, nil, 1, 2, 2500.00, "Monthly salary", "income", testDate)
 				mock.ExpectQuery("SELECT \\* FROM `transactions`").
 					WithArgs(1).
 					WillReturnRows(rows)

@@ -24,7 +24,7 @@ func GetDefaultCategories() []Category {
 		{Name: "Investment", Type: "income", Description: "Investment returns", Icon: "📈", Color: "#FF9800", IsDefault: true},
 		{Name: "Business", Type: "income", Description: "Business income", Icon: "🏢", Color: "#9C27B0", IsDefault: true},
 		{Name: "Other Income", Type: "income", Description: "Other sources of income", Icon: "💰", Color: "#607D8B", IsDefault: true},
-		
+
 		// Expense Categories
 		{Name: "Food & Dining", Type: "expense", Description: "Restaurants, groceries, food delivery", Icon: "🍽️", Color: "#F44336", IsDefault: true},
 		{Name: "Transportation", Type: "expense", Description: "Gas, public transport, car maintenance", Icon: "🚗", Color: "#FF5722", IsDefault: true},

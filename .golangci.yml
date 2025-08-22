@@ -9,8 +9,8 @@ run:
     - vendor
     - .git
   skip-files:
-    - ".*\.pb\.go$"
-    - ".*_generated\.go$"
+    - ".*\\.pb\\.go$"
+    - ".*_generated\\.go$"
 
 output:
   format: colored-line-number
@@ -48,6 +48,14 @@ linters-settings:
 
   misspell:
     locale: US
+
+  depguard:
+    list-type: blacklist
+    packages:
+      # logging is allowed only by logutils.Log, logrus
+      # is allowed to use only in logutils package
+    packages-with-error-message:
+      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
 
   lll:
     line-length: 140
@@ -143,6 +151,7 @@ issues:
         - errcheck
         - dupl
         - gosec
+        - depguard
     - path: cmd/
       linters:
         - gomnd

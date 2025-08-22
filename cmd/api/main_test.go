@@ -206,7 +206,7 @@ func TestHealthEndpoint(t *testing.T) {
 	router, _ := setupTestApp(t)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/health", nil)
+	req, _ := http.NewRequest("GET", "/health", http.NoBody)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -224,7 +224,7 @@ func TestMetricsEndpoint(t *testing.T) {
 	router, _ := setupTestApp(t)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/metrics", nil)
+	req, _ := http.NewRequest("GET", "/metrics", http.NoBody)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -243,7 +243,7 @@ func TestAPIV1HealthEndpoint(t *testing.T) {
 	router, _ := setupTestApp(t)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/health", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/health", http.NoBody)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -260,7 +260,7 @@ func TestAPIV1MetricsEndpoint(t *testing.T) {
 	router, _ := setupTestApp(t)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/metrics", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/metrics", http.NoBody)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -277,7 +277,7 @@ func TestCORSMiddleware(t *testing.T) {
 	router, _ := setupTestApp(t)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("OPTIONS", "/api/v1/health", nil)
+	req, _ := http.NewRequest("OPTIONS", "/api/v1/health", http.NoBody)
 	req.Header.Set("Origin", "http://localhost:3000")
 	router.ServeHTTP(w, req)
 
@@ -336,7 +336,7 @@ func TestPublicRoutes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest(tt.method, tt.path, nil)
+			req, _ := http.NewRequest(tt.method, tt.path, http.NoBody)
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.expectedStatus, w.Code)
@@ -368,7 +368,7 @@ func TestProtectedRoutesWithoutAuth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest("GET", tt.path, nil)
+			req, _ := http.NewRequest("GET", tt.path, http.NoBody)
 			router.ServeHTTP(w, req)
 
 			// Should return 401 Unauthorized for protected routes without auth
@@ -389,7 +389,7 @@ func TestApplicationStartup(t *testing.T) {
 
 	// Test that we can make a simple request
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/health", nil)
+	req, _ := http.NewRequest("GET", "/health", http.NoBody)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -405,7 +405,7 @@ func TestConcurrentRequests(t *testing.T) {
 	for i := 0; i < numRequests; i++ {
 		go func() {
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest("GET", "/health", nil)
+			req, _ := http.NewRequest("GET", "/health", http.NoBody)
 			router.ServeHTTP(w, req)
 			results <- w.Code
 		}()
@@ -429,7 +429,7 @@ func BenchmarkHealthEndpoint(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/health", nil)
+		req, _ := http.NewRequest("GET", "/health", http.NoBody)
 		router.ServeHTTP(w, req)
 	}
 }
@@ -440,7 +440,7 @@ func BenchmarkCategoriesEndpoint(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/v1/categories", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/categories", http.NoBody)
 		router.ServeHTTP(w, req)
 	}
 }

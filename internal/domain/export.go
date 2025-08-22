@@ -27,13 +27,13 @@ type ExportRequest struct {
 type ExportFilter struct {
 	Categories   []string `json:"categories,omitempty"`
 	Transactions struct {
-		Types      []string  `json:"types,omitempty"`      // "income", "expense"
-		MinAmount  *float64  `json:"min_amount,omitempty"`
-		MaxAmount  *float64  `json:"max_amount,omitempty"`
-		DateRange  DateRange `json:"date_range,omitempty"`
+		Types     []string  `json:"types,omitempty"` // "income", "expense"
+		MinAmount *float64  `json:"min_amount,omitempty"`
+		MaxAmount *float64  `json:"max_amount,omitempty"`
+		DateRange DateRange `json:"date_range,omitempty"`
 	} `json:"transactions,omitempty"`
 	Budgets struct {
-		Periods  []string `json:"periods,omitempty"`  // "monthly", "yearly"
+		Periods  []string `json:"periods,omitempty"` // "monthly", "yearly"
 		IsActive *bool    `json:"is_active,omitempty"`
 	} `json:"budgets,omitempty"`
 	Reports struct {
@@ -61,11 +61,11 @@ type ExportResponse struct {
 
 // ExportData represents all user financial data for export
 type ExportData struct {
-	Transactions []Transaction `json:"transactions"`
-	Budgets      []Budget      `json:"budgets"`
-	Categories   []Category    `json:"categories"`
-	ExportedAt   time.Time     `json:"exported_at"`
-	Format       ExportFormat  `json:"format"`
+	Transactions []Transaction  `json:"transactions"`
+	Budgets      []Budget       `json:"budgets"`
+	Categories   []Category     `json:"categories"`
+	ExportedAt   time.Time      `json:"exported_at"`
+	Format       ExportFormat   `json:"format"`
 	Metadata     ExportMetadata `json:"metadata"`
 }
 
@@ -83,23 +83,23 @@ type ExportMetadata struct {
 
 // ExportJob represents an export job for async processing
 type ExportJob struct {
-	ID          uint           `json:"id" gorm:"primaryKey"`
-	UserID      uint           `json:"user_id" gorm:"not null;index"`
-	JobID       string         `json:"job_id" gorm:"uniqueIndex;not null"`
-	DataType    string         `json:"data_type" gorm:"not null"`
-	Format      ExportFormat   `json:"format" gorm:"not null"`
-	Status      ExportStatus   `json:"status" gorm:"not null;default:'pending'"`
-	Filename    string         `json:"filename"`
-	FileSize    int64          `json:"file_size"`
-	RecordCount int            `json:"record_count"`
-	Progress    int            `json:"progress" gorm:"default:0"` // 0-100
-	ErrorMsg    string         `json:"error_message,omitempty"`
-	StartedAt   *time.Time     `json:"started_at"`
-	CompletedAt *time.Time     `json:"completed_at"`
-	ExpiresAt   time.Time      `json:"expires_at"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	Request     ExportRequest  `json:"request" gorm:"type:json"`
+	ID          uint          `json:"id" gorm:"primaryKey"`
+	UserID      uint          `json:"user_id" gorm:"not null;index"`
+	JobID       string        `json:"job_id" gorm:"uniqueIndex;not null"`
+	DataType    string        `json:"data_type" gorm:"not null"`
+	Format      ExportFormat  `json:"format" gorm:"not null"`
+	Status      ExportStatus  `json:"status" gorm:"not null;default:'pending'"`
+	Filename    string        `json:"filename"`
+	FileSize    int64         `json:"file_size"`
+	RecordCount int           `json:"record_count"`
+	Progress    int           `json:"progress" gorm:"default:0"` // 0-100
+	ErrorMsg    string        `json:"error_message,omitempty"`
+	StartedAt   *time.Time    `json:"started_at"`
+	CompletedAt *time.Time    `json:"completed_at"`
+	ExpiresAt   time.Time     `json:"expires_at"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
+	Request     ExportRequest `json:"request" gorm:"type:json"`
 }
 
 // ExportStatus represents the status of an export job

@@ -6,75 +6,75 @@ import (
 
 // FinancialMetrics represents comprehensive financial analysis
 type FinancialMetrics struct {
-	UserID              uint                    `json:"user_id"`
-	Period              string                  `json:"period"` // "monthly", "quarterly", "yearly"
-	StartDate           time.Time               `json:"start_date"`
-	EndDate             time.Time               `json:"end_date"`
-	TotalIncome         float64                 `json:"total_income"`
-	TotalExpenses       float64                 `json:"total_expenses"`
-	NetIncome           float64                 `json:"net_income"`
-	SavingsRate         float64                 `json:"savings_rate"`
-	ExpenseRatio        float64                 `json:"expense_ratio"`
-	CashFlow            float64                 `json:"cash_flow"`
-	CategoryBreakdown   []CategoryMetrics       `json:"category_breakdown"`
-	MonthlyTrends       []MonthlyTrend          `json:"monthly_trends"`
-	FinancialHealth     FinancialHealthScore    `json:"financial_health"`
-	BudgetPerformance   BudgetPerformanceMetrics `json:"budget_performance"`
+	UserID            uint                     `json:"user_id"`
+	Period            string                   `json:"period"` // "monthly", "quarterly", "yearly"
+	StartDate         time.Time                `json:"start_date"`
+	EndDate           time.Time                `json:"end_date"`
+	TotalIncome       float64                  `json:"total_income"`
+	TotalExpenses     float64                  `json:"total_expenses"`
+	NetIncome         float64                  `json:"net_income"`
+	SavingsRate       float64                  `json:"savings_rate"`
+	ExpenseRatio      float64                  `json:"expense_ratio"`
+	CashFlow          float64                  `json:"cash_flow"`
+	CategoryBreakdown []CategoryMetrics        `json:"category_breakdown"`
+	MonthlyTrends     []MonthlyTrend           `json:"monthly_trends"`
+	FinancialHealth   FinancialHealthScore     `json:"financial_health"`
+	BudgetPerformance BudgetPerformanceMetrics `json:"budget_performance"`
 }
 
 // CategoryMetrics represents spending analysis by category
 type CategoryMetrics struct {
-	CategoryID       uint    `json:"category_id"`
-	CategoryName     string  `json:"category_name"`
-	TotalAmount      float64 `json:"total_amount"`
-	TransactionCount int     `json:"transaction_count"`
+	CategoryID        uint    `json:"category_id"`
+	CategoryName      string  `json:"category_name"`
+	TotalAmount       float64 `json:"total_amount"`
+	TransactionCount  int     `json:"transaction_count"`
 	PercentageOfTotal float64 `json:"percentage_of_total"`
-	AverageAmount    float64 `json:"average_amount"`
-	Trend            string  `json:"trend"` // "increasing", "decreasing", "stable"
+	AverageAmount     float64 `json:"average_amount"`
+	Trend             string  `json:"trend"` // "increasing", "decreasing", "stable"
 }
 
 // MonthlyTrend represents month-over-month financial trends
 type MonthlyTrend struct {
-	Month         string  `json:"month"`
-	Year          int     `json:"year"`
-	Income        float64 `json:"income"`
-	Expenses      float64 `json:"expenses"`
-	NetIncome     float64 `json:"net_income"`
-	SavingsRate   float64 `json:"savings_rate"`
+	Month       string  `json:"month"`
+	Year        int     `json:"year"`
+	Income      float64 `json:"income"`
+	Expenses    float64 `json:"expenses"`
+	NetIncome   float64 `json:"net_income"`
+	SavingsRate float64 `json:"savings_rate"`
 }
 
 // FinancialHealthScore represents overall financial health assessment
 type FinancialHealthScore struct {
-	OverallScore      int    `json:"overall_score"` // 0-100
-	SavingsScore      int    `json:"savings_score"`
-	SpendingScore     int    `json:"spending_score"`
-	BudgetScore       int    `json:"budget_score"`
-	HealthStatus      string `json:"health_status"` // "excellent", "good", "fair", "poor"
-	Recommendations   []string `json:"recommendations"`
+	OverallScore    int      `json:"overall_score"` // 0-100
+	SavingsScore    int      `json:"savings_score"`
+	SpendingScore   int      `json:"spending_score"`
+	BudgetScore     int      `json:"budget_score"`
+	HealthStatus    string   `json:"health_status"` // "excellent", "good", "fair", "poor"
+	Recommendations []string `json:"recommendations"`
 }
 
 // BudgetPerformanceMetrics represents budget vs actual spending analysis
 type BudgetPerformanceMetrics struct {
-	TotalBudgeted     float64 `json:"total_budgeted"`
-	TotalSpent        float64 `json:"total_spent"`
-	Variance          float64 `json:"variance"`
-	VariancePercentage float64 `json:"variance_percentage"`
-	CategoriesOverBudget int   `json:"categories_over_budget"`
-	CategoriesUnderBudget int  `json:"categories_under_budget"`
+	TotalBudgeted         float64 `json:"total_budgeted"`
+	TotalSpent            float64 `json:"total_spent"`
+	Variance              float64 `json:"variance"`
+	VariancePercentage    float64 `json:"variance_percentage"`
+	CategoriesOverBudget  int     `json:"categories_over_budget"`
+	CategoriesUnderBudget int     `json:"categories_under_budget"`
 }
 
 // IncomeExpenseAnalysis represents detailed income vs expense analysis
 type IncomeExpenseAnalysis struct {
-	UserID            uint                    `json:"user_id"`
-	Period            string                  `json:"period"`
-	StartDate         time.Time               `json:"start_date"`
-	EndDate           time.Time               `json:"end_date"`
-	IncomeBreakdown   []CategoryMetrics       `json:"income_breakdown"`
-	ExpenseBreakdown  []CategoryMetrics       `json:"expense_breakdown"`
-	TopIncomeCategories []CategoryMetrics     `json:"top_income_categories"`
-	TopExpenseCategories []CategoryMetrics    `json:"top_expense_categories"`
-	DailyAverages     DailyAverages           `json:"daily_averages"`
-	WeeklyTrends      []WeeklyTrend           `json:"weekly_trends"`
+	UserID               uint              `json:"user_id"`
+	Period               string            `json:"period"`
+	StartDate            time.Time         `json:"start_date"`
+	EndDate              time.Time         `json:"end_date"`
+	IncomeBreakdown      []CategoryMetrics `json:"income_breakdown"`
+	ExpenseBreakdown     []CategoryMetrics `json:"expense_breakdown"`
+	TopIncomeCategories  []CategoryMetrics `json:"top_income_categories"`
+	TopExpenseCategories []CategoryMetrics `json:"top_expense_categories"`
+	DailyAverages        DailyAverages     `json:"daily_averages"`
+	WeeklyTrends         []WeeklyTrend     `json:"weekly_trends"`
 }
 
 // DailyAverages represents daily spending and income averages
@@ -86,13 +86,13 @@ type DailyAverages struct {
 
 // WeeklyTrend represents week-over-week trends
 type WeeklyTrend struct {
-	WeekStart     time.Time `json:"week_start"`
-	WeekEnd       time.Time `json:"week_end"`
-	WeekNumber    int       `json:"week_number"`
-	Income        float64   `json:"income"`
-	Expenses      float64   `json:"expenses"`
-	NetIncome     float64   `json:"net_income"`
-	TransactionCount int    `json:"transaction_count"`
+	WeekStart        time.Time `json:"week_start"`
+	WeekEnd          time.Time `json:"week_end"`
+	WeekNumber       int       `json:"week_number"`
+	Income           float64   `json:"income"`
+	Expenses         float64   `json:"expenses"`
+	NetIncome        float64   `json:"net_income"`
+	TransactionCount int       `json:"transaction_count"`
 }
 
 // CalculateFinancialHealth calculates overall financial health score

@@ -67,12 +67,12 @@ func TestCategoryService_InitializeDefaultCategories(t *testing.T) {
 		// Count should remain the same
 		var count1, count2 int64
 		db.Model(&domain.Category{}).Where("is_default = ?", true).Count(&count1)
-		
+
 		// Run again
 		err = categoryService.InitializeDefaultCategories()
 		assert.NoError(t, err)
 		db.Model(&domain.Category{}).Where("is_default = ?", true).Count(&count2)
-		
+
 		assert.Equal(t, count1, count2)
 	})
 }
@@ -154,7 +154,7 @@ func TestCategoryService_GetAllCategories(t *testing.T) {
 		result, err := categoryService.GetAllCategories()
 		assert.NoError(t, err)
 		assert.Len(t, result, 3)
-		
+
 		// Should be ordered by type ASC, name ASC
 		assert.Equal(t, "expense", result[0].Type)
 		assert.Equal(t, "Food", result[0].Name)
@@ -301,10 +301,10 @@ func TestCategoryService_UpdateCategory(t *testing.T) {
 		// Verify only description and color were updated
 		updated, err := categoryService.GetCategoryByID(category.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, "Default Category", updated.Name) // Should not change
-		assert.Equal(t, "expense", updated.Type)          // Should not change
+		assert.Equal(t, "Default Category", updated.Name)           // Should not change
+		assert.Equal(t, "expense", updated.Type)                    // Should not change
 		assert.Equal(t, "Updated description", updated.Description) // Should change
-		assert.Equal(t, "#00FF00", updated.Color)         // Should change
+		assert.Equal(t, "#00FF00", updated.Color)                   // Should change
 	})
 
 	t.Run("update non-existent category", func(t *testing.T) {

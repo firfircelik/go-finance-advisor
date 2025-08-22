@@ -84,7 +84,7 @@ func TestRealTimeMarketService_GetCryptoPrices(t *testing.T) {
 
 			// Mock the URL by temporarily replacing the method
 			service.client = &http.Client{
-				Timeout: 5 * time.Second,
+				Timeout:   5 * time.Second,
 				Transport: &mockTransport{server: server},
 			}
 

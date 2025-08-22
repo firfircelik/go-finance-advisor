@@ -23,7 +23,7 @@ func setupTestApp(t *testing.T) (*App, *gorm.DB) {
 	// Use in-memory SQLite database for testing with proper configuration for concurrent access
 	db, err := gorm.Open(sqlite.Open(":memory:?cache=shared&mode=rwc"), &gorm.Config{})
 	require.NoError(t, err)
-	
+
 	// Configure connection pool for concurrent access
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
@@ -218,10 +218,10 @@ func TestAppWithMockInput(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
-			
+
 			// Replace reader with test input
 			app.reader = bufio.NewReader(strings.NewReader(tt.input))
-			
+
 			// Test that reader is properly set
 			assert.NotNil(t, app.reader)
 		})
@@ -473,9 +473,9 @@ func TestApplicationFlow(t *testing.T) {
 	assert.Equal(t, user.Email, retrievedUser.Email)
 
 	transactions, err := app.txSvc.List(user.ID)
-    require.NoError(t, err)
-    assert.Len(t, transactions, 1)
-    assert.Equal(t, transaction.Amount, transactions[0].Amount)
+	require.NoError(t, err)
+	assert.Len(t, transactions, 1)
+	assert.Equal(t, transaction.Amount, transactions[0].Amount)
 
 	budgets, err := app.budgetSvc.GetBudgetsByUser(user.ID)
 	require.NoError(t, err)

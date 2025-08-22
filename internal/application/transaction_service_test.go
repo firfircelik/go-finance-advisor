@@ -320,25 +320,25 @@ func TestTransactionService_GetTotalByType(t *testing.T) {
 	// Create test transactions
 	transactions := []*domain.Transaction{
 		{
-			UserID:      userID,
-			CategoryID:  categoryID,
-			Amount:      100.00,
-			Type:        "income",
-			Date:        now.AddDate(0, 0, -3),
+			UserID:     userID,
+			CategoryID: categoryID,
+			Amount:     100.00,
+			Type:       "income",
+			Date:       now.AddDate(0, 0, -3),
 		},
 		{
-			UserID:      userID,
-			CategoryID:  categoryID,
-			Amount:      200.00,
-			Type:        "income",
-			Date:        now.AddDate(0, 0, -2),
+			UserID:     userID,
+			CategoryID: categoryID,
+			Amount:     200.00,
+			Type:       "income",
+			Date:       now.AddDate(0, 0, -2),
 		},
 		{
-			UserID:      userID,
-			CategoryID:  categoryID,
-			Amount:      50.00,
-			Type:        "expense",
-			Date:        now.AddDate(0, 0, -1),
+			UserID:     userID,
+			CategoryID: categoryID,
+			Amount:     50.00,
+			Type:       "expense",
+			Date:       now.AddDate(0, 0, -1),
 		},
 	}
 
@@ -380,18 +380,18 @@ func TestTransactionService_GetDailyAverages(t *testing.T) {
 	// Create test transactions
 	transactions := []*domain.Transaction{
 		{
-			UserID:      userID,
-			CategoryID:  categoryID,
-			Amount:      1000.00, // Total income: 1000
-			Type:        "income",
-			Date:        now.AddDate(0, 0, -5),
+			UserID:     userID,
+			CategoryID: categoryID,
+			Amount:     1000.00, // Total income: 1000
+			Type:       "income",
+			Date:       now.AddDate(0, 0, -5),
 		},
 		{
-			UserID:      userID,
-			CategoryID:  categoryID,
-			Amount:      300.00, // Total expense: 300
-			Type:        "expense",
-			Date:        now.AddDate(0, 0, -3),
+			UserID:     userID,
+			CategoryID: categoryID,
+			Amount:     300.00, // Total expense: 300
+			Type:       "expense",
+			Date:       now.AddDate(0, 0, -3),
 		},
 	}
 
@@ -408,9 +408,9 @@ func TestTransactionService_GetDailyAverages(t *testing.T) {
 		assert.Contains(t, averages, "daily_net")
 
 		// 10 days period
-		assert.Equal(t, 100.00, averages["daily_income"])  // 1000/10
-		assert.Equal(t, 30.00, averages["daily_expense"])   // 300/10
-		assert.Equal(t, 70.00, averages["daily_net"])       // (1000-300)/10
+		assert.Equal(t, 100.00, averages["daily_income"]) // 1000/10
+		assert.Equal(t, 30.00, averages["daily_expense"]) // 300/10
+		assert.Equal(t, 70.00, averages["daily_net"])     // (1000-300)/10
 	})
 
 	t.Run("same day range", func(t *testing.T) {

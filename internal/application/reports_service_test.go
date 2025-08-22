@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"go-finance-advisor/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go-finance-advisor/internal/domain"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -113,14 +113,14 @@ func TestReportsService_GenerateMonthlyReport(t *testing.T) {
 
 	t.Run("generate monthly report with data", func(t *testing.T) {
 		report, err := service.GenerateMonthlyReport(userID, 2024, 1)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, "monthly", report.ReportType)
 		assert.Equal(t, userID, report.UserID)
-		assert.Equal(t, 6000.00, report.TotalIncome)   // 5000 + 1000
-		assert.Equal(t, 550.00, report.TotalExpenses)  // 300 + 250
-		assert.Equal(t, 5450.00, report.NetIncome)     // 6000 - 550
+		assert.Equal(t, 6000.00, report.TotalIncome)  // 5000 + 1000
+		assert.Equal(t, 550.00, report.TotalExpenses) // 300 + 250
+		assert.Equal(t, 5450.00, report.NetIncome)    // 6000 - 550
 		assert.Equal(t, 4, report.TransactionCount)
 		assert.Greater(t, report.SavingsRate, 90.0) // Should be around 90.8%
 		assert.NotEmpty(t, report.CategoryBreakdown)
@@ -129,7 +129,7 @@ func TestReportsService_GenerateMonthlyReport(t *testing.T) {
 
 	t.Run("generate monthly report for period with no data", func(t *testing.T) {
 		report, err := service.GenerateMonthlyReport(userID, 2024, 2)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, "monthly", report.ReportType)
@@ -142,7 +142,7 @@ func TestReportsService_GenerateMonthlyReport(t *testing.T) {
 
 	t.Run("generate monthly report for non-existent user", func(t *testing.T) {
 		report, err := service.GenerateMonthlyReport(99999, 2024, 1)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, 0, report.TransactionCount)
@@ -156,7 +156,7 @@ func TestReportsService_GenerateQuarterlyReport(t *testing.T) {
 
 	t.Run("generate Q1 quarterly report", func(t *testing.T) {
 		report, err := service.GenerateQuarterlyReport(userID, 2024, 1)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, "quarterly", report.ReportType)
@@ -169,7 +169,7 @@ func TestReportsService_GenerateQuarterlyReport(t *testing.T) {
 
 	t.Run("generate quarterly report with invalid quarter", func(t *testing.T) {
 		report, err := service.GenerateQuarterlyReport(userID, 2024, 5)
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, report)
 		assert.Contains(t, err.Error(), "invalid quarter")
@@ -177,7 +177,7 @@ func TestReportsService_GenerateQuarterlyReport(t *testing.T) {
 
 	t.Run("generate Q2 quarterly report", func(t *testing.T) {
 		report, err := service.GenerateQuarterlyReport(userID, 2024, 2)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, "quarterly", report.ReportType)
@@ -186,14 +186,14 @@ func TestReportsService_GenerateQuarterlyReport(t *testing.T) {
 
 	t.Run("generate Q3 quarterly report", func(t *testing.T) {
 		report, err := service.GenerateQuarterlyReport(userID, 2024, 3)
-		
+
 		require.NoError(t, err)
 		assert.Equal(t, time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC), report.StartDate)
 	})
 
 	t.Run("generate Q4 quarterly report", func(t *testing.T) {
 		report, err := service.GenerateQuarterlyReport(userID, 2024, 4)
-		
+
 		require.NoError(t, err)
 		assert.Equal(t, time.Date(2024, 10, 1, 0, 0, 0, 0, time.UTC), report.StartDate)
 	})
@@ -206,7 +206,7 @@ func TestReportsService_GenerateYearlyReport(t *testing.T) {
 
 	t.Run("generate yearly report with data", func(t *testing.T) {
 		report, err := service.GenerateYearlyReport(userID, 2024)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, "yearly", report.ReportType)
@@ -220,7 +220,7 @@ func TestReportsService_GenerateYearlyReport(t *testing.T) {
 
 	t.Run("generate yearly report for different year", func(t *testing.T) {
 		report, err := service.GenerateYearlyReport(userID, 2023)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, "yearly", report.ReportType)
@@ -237,9 +237,9 @@ func TestReportsService_GenerateCustomReport(t *testing.T) {
 	t.Run("generate custom report for specific date range", func(t *testing.T) {
 		startDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2024, 1, 15, 23, 59, 59, 0, time.UTC)
-		
+
 		report, err := service.GenerateCustomReport(userID, startDate, endDate)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, "custom", report.ReportType)
@@ -248,16 +248,16 @@ func TestReportsService_GenerateCustomReport(t *testing.T) {
 		assert.Equal(t, endDate, report.EndDate)
 		// Should include transactions from Jan 1, 5, and 15 (3 transactions)
 		assert.Equal(t, 3, report.TransactionCount)
-		assert.Equal(t, 5000.00, report.TotalIncome) // 5000 from Jan 1
+		assert.Equal(t, 5000.00, report.TotalIncome)  // 5000 from Jan 1
 		assert.Equal(t, 550.00, report.TotalExpenses) // 300 + 250
 	})
 
 	t.Run("generate custom report for single day", func(t *testing.T) {
 		startDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2024, 1, 1, 23, 59, 59, 0, time.UTC)
-		
+
 		report, err := service.GenerateCustomReport(userID, startDate, endDate)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, 1, report.TransactionCount) // Only Jan 1 transaction
@@ -268,9 +268,9 @@ func TestReportsService_GenerateCustomReport(t *testing.T) {
 	t.Run("generate custom report for range with no data", func(t *testing.T) {
 		startDate := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2024, 2, 28, 23, 59, 59, 0, time.UTC)
-		
+
 		report, err := service.GenerateCustomReport(userID, startDate, endDate)
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, report)
 		assert.Equal(t, 0, report.TransactionCount)
@@ -286,10 +286,10 @@ func TestReportsService_Integration(t *testing.T) {
 
 	t.Run("report includes category breakdown", func(t *testing.T) {
 		report, err := service.GenerateMonthlyReport(userID, 2024, 1)
-		
+
 		require.NoError(t, err)
 		assert.NotEmpty(t, report.CategoryBreakdown)
-		
+
 		// Find categories in breakdown
 		var salaryCategory, groceriesCategory *domain.CategoryMetrics
 		for i := range report.CategoryBreakdown {
@@ -299,7 +299,7 @@ func TestReportsService_Integration(t *testing.T) {
 				groceriesCategory = &report.CategoryBreakdown[i]
 			}
 		}
-		
+
 		assert.NotNil(t, salaryCategory)
 		assert.NotNil(t, groceriesCategory)
 		assert.Equal(t, 6000.00, salaryCategory.TotalAmount)
@@ -310,7 +310,7 @@ func TestReportsService_Integration(t *testing.T) {
 
 	t.Run("report calculates savings rate correctly", func(t *testing.T) {
 		report, err := service.GenerateMonthlyReport(userID, 2024, 1)
-		
+
 		require.NoError(t, err)
 		expectedSavingsRate := ((6000.0 - 550.0) / 6000.0) * 100
 		assert.InDelta(t, expectedSavingsRate, report.SavingsRate, 0.01)
@@ -318,7 +318,7 @@ func TestReportsService_Integration(t *testing.T) {
 
 	t.Run("report includes insights and recommendations", func(t *testing.T) {
 		report, err := service.GenerateMonthlyReport(userID, 2024, 1)
-		
+
 		require.NoError(t, err)
 		assert.NotEmpty(t, report.Insights)
 		assert.NotEmpty(t, report.Recommendations)
@@ -326,13 +326,13 @@ func TestReportsService_Integration(t *testing.T) {
 
 	t.Run("report includes budget performance", func(t *testing.T) {
 		report, err := service.GenerateMonthlyReport(userID, 2024, 1)
-		
+
 		require.NoError(t, err)
 		assert.NotEmpty(t, report.BudgetPerformance)
-		
+
 		// Verify budget performance metrics
 		assert.GreaterOrEqual(t, report.BudgetPerformance.TotalBudgeted, 0.0)
 		assert.GreaterOrEqual(t, report.BudgetPerformance.TotalSpent, 0.0)
-		assert.NotZero(t, report.BudgetPerformance.CategoriesUnderBudget + report.BudgetPerformance.CategoriesOverBudget)
+		assert.NotZero(t, report.BudgetPerformance.CategoriesUnderBudget+report.BudgetPerformance.CategoriesOverBudget)
 	})
 }

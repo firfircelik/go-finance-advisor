@@ -26,11 +26,11 @@ func NewCategoryService(db *gorm.DB) *CategoryService {
 // InitializeDefaultCategories creates default categories if they don't exist
 func (s *CategoryService) InitializeDefaultCategories() error {
 	defaultCategories := domain.GetDefaultCategories()
-	
+
 	for _, category := range defaultCategories {
 		var existingCategory domain.Category
 		err := s.DB.Where("name = ? AND type = ?", category.Name, category.Type).First(&existingCategory).Error
-		
+
 		if err == gorm.ErrRecordNotFound {
 			// Category doesn't exist, create it
 			if err := s.DB.Create(&category).Error; err != nil {
@@ -40,7 +40,7 @@ func (s *CategoryService) InitializeDefaultCategories() error {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -49,15 +49,15 @@ func (s *CategoryService) CreateCategory(category *domain.Category) error {
 	// Check if category with same name and type already exists
 	var existingCategory domain.Category
 	err := s.DB.Where("name = ? AND type = ?", category.Name, category.Type).First(&existingCategory).Error
-	
+
 	if err == nil {
 		return gorm.ErrDuplicatedKey
 	}
-	
+
 	if err != gorm.ErrRecordNotFound {
 		return err
 	}
-	
+
 	category.IsDefault = false
 	return s.DB.Create(category).Error
 }
@@ -93,7 +93,7 @@ func (s *CategoryService) UpdateCategory(categoryID uint, updates *domain.Catego
 	if err != nil {
 		return err
 	}
-	
+
 	// Don't allow updating default categories' core properties
 	if category.IsDefault {
 		// Only allow updating description and color for default categories
@@ -107,7 +107,7 @@ func (s *CategoryService) UpdateCategory(categoryID uint, updates *domain.Catego
 		category.Icon = updates.Icon
 		category.Color = updates.Color
 	}
-	
+
 	return s.DB.Save(&category).Error
 }
 
@@ -118,28 +118,28 @@ func (s *CategoryService) DeleteCategory(categoryID uint) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Don't allow deleting default categories
 	if category.IsDefault {
 		return gorm.ErrInvalidData
 	}
-	
+
 	// Check if category is being used by any transactions
 	var transactionCount int64
 	s.DB.Model(&domain.Transaction{}).Where("category_id = ?", categoryID).Count(&transactionCount)
-	
+
 	if transactionCount > 0 {
 		return gorm.ErrForeignKeyViolated
 	}
-	
+
 	// Check if category is being used by any budgets
 	var budgetCount int64
 	s.DB.Model(&domain.Budget{}).Where("category_id = ?", categoryID).Count(&budgetCount)
-	
+
 	if budgetCount > 0 {
 		return gorm.ErrForeignKeyViolated
 	}
-	
+
 	return s.DB.Delete(&category).Error
 }
 
@@ -156,7 +156,7 @@ func (s *CategoryService) GetDefaultCategoryByName(name, categoryType string) (*
 // GetCategoryUsageStats returns usage statistics for categories
 func (s *CategoryService) GetCategoryUsageStats(userID uint) ([]CategoryUsageStats, error) {
 	var stats []CategoryUsageStats
-	
+
 	query := `
 		SELECT 
 			c.id as category_id,
@@ -171,7 +171,7 @@ func (s *CategoryService) GetCategoryUsageStats(userID uint) ([]CategoryUsageSta
 		GROUP BY c.id, c.name, c.type
 		ORDER BY transaction_count DESC, total_amount DESC
 	`
-	
+
 	err := s.DB.Raw(query, userID).Scan(&stats).Error
 	return stats, err
 }

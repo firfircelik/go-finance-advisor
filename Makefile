@@ -51,6 +51,9 @@ build:
 	@mkdir -p $(BIN_DIR)
 	CGO_ENABLED=0 go build $(LDFLAGS) -o $(BIN_DIR)/$(APP_NAME) ./cmd/api
 	@echo "$(GREEN)✅ Build completed: $(BIN_DIR)/$(APP_NAME)$(RESET)"
+	@echo "$(CYAN)Version: $(VERSION)$(RESET)"
+	@echo "$(CYAN)Build Time: $(BUILD_TIME)$(RESET)"
+	@echo "$(CYAN)Git Commit: $(GIT_COMMIT)$(RESET)"
 
 ## build-all: Build for multiple platforms
 build-all:

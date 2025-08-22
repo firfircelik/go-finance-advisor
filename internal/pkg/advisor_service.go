@@ -191,7 +191,7 @@ func (s *RealTimeMarketService) AnalyzeMarket() (*MarketAnalysis, error) {
 }
 
 // GeneratePersonalizedAdvice creates personalized investment recommendations
-func (s *RealTimeMarketService) GeneratePersonalizedAdvice(user domain.User, monthlyIncome float64) (*InvestmentRecommendation, error) {
+func (s *RealTimeMarketService) GeneratePersonalizedAdvice(user *domain.User, monthlyIncome float64) (*InvestmentRecommendation, error) {
 	marketAnalysis, err := s.AnalyzeMarket()
 	if err != nil {
 		return nil, err
@@ -446,6 +446,11 @@ func (s *RealTimeMarketService) GenerateAdviceText(riskTolerance string, analysi
 	}
 }
 
+// GetMarketData fetches current market data
+func (s *RealTimeMarketService) GetMarketData() (*MarketData, error) {
+	return FetchMarketData()
+}
+
 // GetMarketSummary provides a quick AI-enhanced market overview
 func (s *RealTimeMarketService) GetMarketSummary() (map[string]interface{}, error) {
 	analysis, err := s.AnalyzeMarket()
@@ -628,7 +633,7 @@ func (s *RealTimeMarketService) predictMarketReturn(cryptos []CryptoPrice, stock
 }
 
 // PerformAIRiskAssessment conducts comprehensive AI-driven risk analysis for a user
-func (s *RealTimeMarketService) PerformAIRiskAssessment(user domain.User, monthlyIncome float64, investmentGoals []string) (*AIRiskAssessment, error) {
+func (s *RealTimeMarketService) PerformAIRiskAssessment(user *domain.User, monthlyIncome float64, investmentGoals []string) (*AIRiskAssessment, error) {
 	// Analyze user factors
 	factors := []string{"age", "income", "risk_tolerance", "investment_goals", "market_conditions"}
 
@@ -657,7 +662,7 @@ func (s *RealTimeMarketService) PerformAIRiskAssessment(user domain.User, monthl
 
 // Helper functions for AI risk assessment
 
-func (s *RealTimeMarketService) calculateUserRiskScore(user domain.User, monthlyIncome float64, goals []string) float64 {
+func (s *RealTimeMarketService) calculateUserRiskScore(user *domain.User, monthlyIncome float64, goals []string) float64 {
 	var score float64
 
 	// Age factor (younger = higher risk tolerance)
@@ -726,7 +731,7 @@ func (s *RealTimeMarketService) generateAIAllocation(riskScore float64, riskTole
 	return allocation
 }
 
-func (s *RealTimeMarketService) calculateAssessmentConfidence(user domain.User, monthlyIncome float64) float64 {
+func (s *RealTimeMarketService) calculateAssessmentConfidence(user *domain.User, monthlyIncome float64) float64 {
 	confidence := 0.5 // Base confidence
 
 	// More data = higher confidence

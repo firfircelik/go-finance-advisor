@@ -36,13 +36,11 @@ func (m *MockTransactionService) GetByID(id uint) (*domain.Transaction, error) {
 	return args.Get(0).(*domain.Transaction), args.Error(1)
 }
 
-func (m *MockTransactionService) GetByUserID(userID uint) ([]domain.Transaction, error) {
-	args := m.Called(userID)
-	return args.Get(0).([]domain.Transaction), args.Error(1)
-}
-
 func (m *MockTransactionService) ListWithFilters(userID uint, transactionType *string, categoryID *uint, startDate, endDate *time.Time, limit, offset int) ([]domain.Transaction, error) {
 	args := m.Called(userID, transactionType, categoryID, startDate, endDate, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]domain.Transaction), args.Error(1)
 }
 

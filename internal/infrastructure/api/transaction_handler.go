@@ -91,7 +91,7 @@ func (h *TransactionHandler) List(c *gin.Context) {
     }
 
     // Get query parameters for filtering
-    transactionType := c.Query("type")
+    transactionTypeStr := c.Query("type")
     categoryIDStr := c.Query("category_id")
     startDateStr := c.Query("start_date")
     endDateStr := c.Query("end_date")
@@ -106,6 +106,11 @@ func (h *TransactionHandler) List(c *gin.Context) {
     offset, err := strconv.Atoi(offsetStr)
     if err != nil || offset < 0 {
         offset = 0
+    }
+
+    var transactionType *string
+    if transactionTypeStr != "" {
+        transactionType = &transactionTypeStr
     }
 
     var categoryID *uint
@@ -138,7 +143,7 @@ func (h *TransactionHandler) List(c *gin.Context) {
         endDate = &end
     }
 
-    transactions, err := h.Service.ListWithFilters(uint(userID), &transactionType, categoryID, startDate, endDate, limit, offset)
+    transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
         return
@@ -241,7 +246,7 @@ func (h *TransactionHandler) ExportCSV(c *gin.Context) {
     }
 
     // Get query parameters for filtering
-    transactionType := c.Query("type")
+    transactionTypeStr := c.Query("type")
     categoryIDStr := c.Query("category_id")
     startDateStr := c.Query("start_date")
     endDateStr := c.Query("end_date")
@@ -250,6 +255,11 @@ func (h *TransactionHandler) ExportCSV(c *gin.Context) {
 
     limit, _ := strconv.Atoi(limitStr)
     offset, _ := strconv.Atoi(offsetStr)
+
+    var transactionType *string
+    if transactionTypeStr != "" {
+        transactionType = &transactionTypeStr
+    }
 
     var categoryID *uint
     if categoryIDStr != "" {
@@ -281,7 +291,7 @@ func (h *TransactionHandler) ExportCSV(c *gin.Context) {
         endDate = &end
     }
 
-    transactions, err := h.Service.ListWithFilters(uint(userID), &transactionType, categoryID, startDate, endDate, limit, offset)
+    transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
         return
@@ -340,7 +350,7 @@ func (h *TransactionHandler) ExportPDF(c *gin.Context) {
     }
 
     // Get query parameters for filtering
-    transactionType := c.Query("type")
+    transactionTypeStr := c.Query("type")
     categoryIDStr := c.Query("category_id")
     startDateStr := c.Query("start_date")
     endDateStr := c.Query("end_date")
@@ -349,6 +359,11 @@ func (h *TransactionHandler) ExportPDF(c *gin.Context) {
 
     limit, _ := strconv.Atoi(limitStr)
     offset, _ := strconv.Atoi(offsetStr)
+
+    var transactionType *string
+    if transactionTypeStr != "" {
+        transactionType = &transactionTypeStr
+    }
 
     var categoryID *uint
     if categoryIDStr != "" {
@@ -380,7 +395,7 @@ func (h *TransactionHandler) ExportPDF(c *gin.Context) {
         endDate = &end
     }
 
-    transactions, err := h.Service.ListWithFilters(uint(userID), &transactionType, categoryID, startDate, endDate, limit, offset)
+    transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
         return

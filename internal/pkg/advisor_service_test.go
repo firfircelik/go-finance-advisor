@@ -238,7 +238,7 @@ func TestRealTimeMarketService_GeneratePersonalizedAdvice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			service := NewRealTimeMarketService()
-			recommendation, err := service.GeneratePersonalizedAdvice(tt.user, tt.monthlyIncome)
+			recommendation, err := service.GeneratePersonalizedAdvice(&tt.user, tt.monthlyIncome)
 
 			// This might fail due to external API dependencies
 			if err == nil {
@@ -529,7 +529,7 @@ func TestRealTimeMarketService_PerformAIRiskAssessment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			service := NewRealTimeMarketService()
-			assessment, err := service.PerformAIRiskAssessment(tt.user, tt.monthlyIncome, tt.investmentGoals)
+			assessment, err := service.PerformAIRiskAssessment(&tt.user, tt.monthlyIncome, tt.investmentGoals)
 
 			require.NoError(t, err)
 			assert.NotNil(t, assessment)

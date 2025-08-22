@@ -33,6 +33,9 @@ type MockUserService struct {
 
 func (m *MockUserService) GetByID(userID uint) (domain.User, error) {
 	args := m.Called(userID)
+	if args.Get(0) == nil {
+		return domain.User{}, args.Error(1)
+	}
 	return args.Get(0).(domain.User), args.Error(1)
 }
 
@@ -58,11 +61,17 @@ func (m *MockUserService) GetByEmail(email string) (*domain.User, error) {
 
 func (m *MockUserService) Register(email, password, firstName, lastName string) (*domain.User, error) {
 	args := m.Called(email, password, firstName, lastName)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
 func (m *MockUserService) Login(email, password string) (*domain.User, error) {
 	args := m.Called(email, password)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
@@ -106,9 +115,9 @@ func (m *MockRealTimeMarketService) GetMarketSummary() (map[string]interface{}, 
 	return args.Get(0).(map[string]interface{}), args.Error(1)
 }
 
-func (m *MockRealTimeMarketService) GenerateRecommendations(riskTolerance string, monthlyIncome float64, analysis *pkg.MarketAnalysis) []pkg.InvestmentRecommendation {
+func (m *MockRealTimeMarketService) GenerateRecommendations(riskTolerance string, monthlyIncome float64, analysis *pkg.MarketAnalysis) []domain.Recommendation {
 	args := m.Called(riskTolerance, monthlyIncome, analysis)
-	return args.Get(0).([]pkg.InvestmentRecommendation)
+	return args.Get(0).([]domain.Recommendation)
 }
 
 func (m *MockRealTimeMarketService) GenerateAdviceText(riskTolerance string, analysis *pkg.MarketAnalysis) string {
@@ -578,25 +587,17 @@ func TestAdvisorHandler_GetPortfolioRecommendations(t *testing.T) {
 			LastUpdated:      time.Now(),
 		}
 
-		recommendations := []pkg.InvestmentRecommendation{
+		recommendations := []domain.Recommendation{
 			{
-				UserID:      1,
-				RiskProfile: "moderate",
-				Recommendations: []domain.Recommendation{
-					{
-						Type:         "stocks",
-						Symbol:       "SPY",
-						Action:       "buy",
-						Reason:       "Market is bullish",
-						Confidence:   80.0,
-						CurrentPrice: 400.0,
-						RiskLevel:    "moderate",
-						Timeframe:    "medium",
-						IsActive:     true,
-					},
-				},
-				Advice:    "Invest in balanced portfolio",
-				CreatedAt: time.Now(),
+				Type:         "stocks",
+				Symbol:       "SPY",
+				Action:       "buy",
+				Reason:       "Market is bullish",
+				Confidence:   80.0,
+				CurrentPrice: 400.0,
+				RiskLevel:    "moderate",
+				Timeframe:    "medium",
+				IsActive:     true,
 			},
 		}
 

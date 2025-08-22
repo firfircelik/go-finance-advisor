@@ -190,11 +190,13 @@ func TestUserHandler_Get(t *testing.T) {
 	})
 
 	t.Run("should handle invalid user ID", func(t *testing.T) {
-		handler, _ := setupUserHandler()
+		handler, mockService := setupUserHandler()
 		router := setupGin()
 		router.GET("/users/:userId", handler.Get)
 
 		// Note: Gin will convert "invalid" to 0, so this tests the zero ID case
+		mockService.On("GetByID", uint(0)).Return(domain.User{}, errors.New("user not found"))
+
 		req := httptest.NewRequest("GET", "/users/invalid", nil)
 		w := httptest.NewRecorder()
 
@@ -202,6 +204,7 @@ func TestUserHandler_Get(t *testing.T) {
 
 		// The handler will still call GetByID with 0, which should return not found
 		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockService.AssertExpectations(t)
 	})
 }
 
@@ -225,7 +228,7 @@ func TestUserHandler_Register(t *testing.T) {
 			LastName:  "Doe",
 		}
 
-		mockService.On("Register", "test@example.com", "password123", "John", "Doe").Return(expectedUser, nil)
+		mockService.On("Register", "test@example.com", "password123", "John", "Doe").Return(&expectedUser, nil)
 
 		requestBody, _ := json.Marshal(registerReq)
 		req := httptest.NewRequest("POST", "/register", bytes.NewBuffer(requestBody))
@@ -254,7 +257,7 @@ func TestUserHandler_Register(t *testing.T) {
 			LastName:  "Doe",
 		}
 
-		mockService.On("Register", "existing@example.com", "password123", "John", "Doe").Return(domain.User{}, errors.New("user already exists"))
+		mockService.On("Register", "existing@example.com", "password123", "John", "Doe").Return((*domain.User)(nil), errors.New("user already exists"))
 
 		requestBody, _ := json.Marshal(registerReq)
 		req := httptest.NewRequest("POST", "/register", bytes.NewBuffer(requestBody))
@@ -339,7 +342,7 @@ func TestUserHandler_Login(t *testing.T) {
 			LastName:  "Doe",
 		}
 
-		mockService.On("Login", "test@example.com", "password123").Return(expectedUser, nil)
+		mockService.On("Login", "test@example.com", "password123").Return(&expectedUser, nil)
 
 		requestBody, _ := json.Marshal(loginReq)
 		req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(requestBody))
@@ -366,7 +369,7 @@ func TestUserHandler_Login(t *testing.T) {
 			Password: "wrongpassword",
 		}
 
-		mockService.On("Login", "test@example.com", "wrongpassword").Return(domain.User{}, errors.New("invalid credentials"))
+		mockService.On("Login", "test@example.com", "wrongpassword").Return((*domain.User)(nil), errors.New("invalid credentials"))
 
 		requestBody, _ := json.Marshal(loginReq)
 		req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(requestBody))

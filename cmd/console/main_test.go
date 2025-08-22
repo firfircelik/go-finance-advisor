@@ -20,9 +20,16 @@ import (
 
 // setupTestApp creates a test instance of the console application
 func setupTestApp(t *testing.T) (*App, *gorm.DB) {
-	// Use in-memory SQLite database for testing
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	// Use in-memory SQLite database for testing with proper configuration for concurrent access
+	db, err := gorm.Open(sqlite.Open(":memory:?cache=shared&mode=rwc"), &gorm.Config{})
 	require.NoError(t, err)
+	
+	// Configure connection pool for concurrent access
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1) // SQLite works best with a single connection
+	sqlDB.SetMaxIdleConns(1)
+	sqlDB.SetConnMaxLifetime(0)
 
 	// Auto migrate
 	err = db.AutoMigrate(&domain.User{}, &domain.Transaction{}, &domain.Category{}, &domain.Budget{})

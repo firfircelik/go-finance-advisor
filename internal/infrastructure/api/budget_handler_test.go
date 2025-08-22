@@ -519,12 +519,12 @@ func TestBudgetHandler_GetBudgetSummary(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/budgets/summary", handler.GetBudgetSummary)
 
-		expectedSummary := map[string]interface{}{
-			"total_budgets":    3,
-			"active_budgets":   2,
-			"total_allocated": 1500.00,
-			"total_spent":     800.00,
-			"remaining":       700.00,
+		expectedSummary := &domain.BudgetSummary{
+			TotalBudget:    1500.00,
+			TotalSpent:     800.00,
+			TotalRemaining: 700.00,
+			PercentageUsed: 53.33,
+			BudgetStatus:   "on_track",
 		}
 
 		mockService.On("GetBudgetSummary", uint(1)).Return(expectedSummary, nil)
@@ -535,11 +535,11 @@ func TestBudgetHandler_GetBudgetSummary(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var response map[string]interface{}
+		var response domain.BudgetSummary
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, float64(3), response["total_budgets"])
-		assert.Equal(t, float64(2), response["active_budgets"])
-		assert.Equal(t, 1500.00, response["total_allocated"])
+		assert.Equal(t, 1500.00, response.TotalBudget)
+		assert.Equal(t, 800.00, response.TotalSpent)
+		assert.Equal(t, 700.00, response.TotalRemaining)
 		mockService.AssertExpectations(t)
 	})
 
@@ -564,7 +564,7 @@ func TestBudgetHandler_GetBudgetSummary(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/budgets/summary", handler.GetBudgetSummary)
 
-		mockService.On("GetBudgetSummary", uint(1)).Return(map[string]interface{}{}, errors.New("database error"))
+		mockService.On("GetBudgetSummary", uint(1)).Return((*domain.BudgetSummary)(nil), errors.New("database error"))
 
 		req := httptest.NewRequest("GET", "/users/1/budgets/summary", nil)
 		w := httptest.NewRecorder()

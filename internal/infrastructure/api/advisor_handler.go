@@ -23,7 +23,7 @@ type MarketServiceInterface interface {
 	GetMarketData() (*pkg.MarketData, error)
 	GetMarketSummary() (map[string]interface{}, error)
 	AnalyzeMarket() (*pkg.MarketAnalysis, error)
-	GenerateRecommendations(riskTolerance string, monthlyIncome float64, analysis *pkg.MarketAnalysis) []pkg.InvestmentRecommendation
+	GenerateRecommendations(riskTolerance string, monthlyIncome float64, analysis *pkg.MarketAnalysis) []domain.Recommendation
 	GenerateAdviceText(riskTolerance string, analysis *pkg.MarketAnalysis) string
 	GeneratePersonalizedAdvice(user *domain.User, monthlyIncome float64) (*pkg.InvestmentRecommendation, error)
 	PerformAIRiskAssessment(user *domain.User, monthlyIncome float64, goals []string) (*pkg.AIRiskAssessment, error)

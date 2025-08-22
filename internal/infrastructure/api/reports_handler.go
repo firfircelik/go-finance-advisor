@@ -31,7 +31,7 @@ func (h *ReportsHandler) GenerateMonthlyReport(c *gin.Context) {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *ReportsHandler) GenerateQuarterlyReport(c *gin.Context) {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
@@ -95,7 +95,7 @@ func (h *ReportsHandler) GenerateYearlyReport(c *gin.Context) {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
@@ -120,7 +120,7 @@ func (h *ReportsHandler) GenerateCustomReport(c *gin.Context) {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
@@ -163,7 +163,7 @@ func (h *ReportsHandler) GetReportsList(c *gin.Context) {
 	userIDStr := c.Param("userId")
 	_, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 

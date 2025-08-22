@@ -103,7 +103,7 @@ func TestReportsHandler_GenerateMonthlyReport(t *testing.T) {
 		var response map[string]string
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("invalid year", func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestReportsHandler_GenerateQuarterlyReport(t *testing.T) {
 		var response map[string]string
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("invalid year", func(t *testing.T) {
@@ -346,7 +346,7 @@ func TestReportsHandler_GenerateYearlyReport(t *testing.T) {
 		var response map[string]string
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("invalid year", func(t *testing.T) {
@@ -447,7 +447,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		var response map[string]string
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("missing start_date", func(t *testing.T) {
@@ -609,6 +609,6 @@ func TestReportsHandler_GetReportsList(t *testing.T) {
 		var response map[string]string
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 }

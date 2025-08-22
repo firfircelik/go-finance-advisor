@@ -49,7 +49,7 @@ func (h *TransactionHandler) Create(c *gin.Context) {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
@@ -92,7 +92,7 @@ func (h *TransactionHandler) List(c *gin.Context) {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 
@@ -123,7 +123,7 @@ func (h *TransactionHandler) List(c *gin.Context) {
 	if categoryIDStr != "" {
 		catID, parseErr := strconv.ParseUint(categoryIDStr, 10, 32)
 		if parseErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category ID"})
 			return
 		}
 		catIDUint := uint(catID)

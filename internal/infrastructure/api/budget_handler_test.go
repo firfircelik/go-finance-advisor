@@ -142,7 +142,7 @@ func TestBudgetHandler_CreateBudget(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("should return bad request for invalid JSON", func(t *testing.T) {
@@ -267,7 +267,7 @@ func TestBudgetHandler_GetBudgets(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("should return internal server error when service fails", func(t *testing.T) {
@@ -556,7 +556,7 @@ func TestBudgetHandler_GetBudgetSummary(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("should return internal server error when service fails", func(t *testing.T) {

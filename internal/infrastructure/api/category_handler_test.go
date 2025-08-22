@@ -215,7 +215,7 @@ func TestCategoryHandler_GetCategory(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid category ID", response["error"])
+		assert.Equal(t, "invalid category ID", response["error"])
 	})
 
 	t.Run("should return not found for non-existent category", func(t *testing.T) {
@@ -588,7 +588,7 @@ func TestCategoryHandler_GetCategoryUsage(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 }
 

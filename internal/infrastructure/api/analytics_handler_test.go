@@ -130,7 +130,7 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("should return bad request for invalid start date", func(t *testing.T) {
@@ -300,7 +300,7 @@ func TestAnalyticsHandler_GetIncomeExpenseAnalysis(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("should return internal server error when service fails", func(t *testing.T) {
@@ -400,7 +400,7 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("should return bad request for invalid category ID", func(t *testing.T) {
@@ -416,7 +416,7 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid category ID", response["error"])
+		assert.Equal(t, "invalid category ID", response["error"])
 	})
 
 	t.Run("should return internal server error when service fails", func(t *testing.T) {
@@ -534,7 +534,7 @@ func TestAnalyticsHandler_GetDashboardSummary(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "Invalid user ID", response["error"])
+		assert.Equal(t, "invalid user ID", response["error"])
 	})
 
 	t.Run("should return internal server error when service fails", func(t *testing.T) {

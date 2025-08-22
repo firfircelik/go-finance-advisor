@@ -2,6 +2,7 @@ package application
 
 import (
 	"go-finance-advisor/internal/domain"
+
 	"gorm.io/gorm"
 )
 

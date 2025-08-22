@@ -2,8 +2,9 @@ package application
 
 import (
 	"go-finance-advisor/internal/domain"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Recommendation struct {

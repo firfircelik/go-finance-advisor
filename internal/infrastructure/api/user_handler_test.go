@@ -157,7 +157,7 @@ func TestUserHandler_Get(t *testing.T) {
 
 		mockService.On("GetByID", uint(1)).Return(expectedUser, nil)
 
-		req := httptest.NewRequest("GET", "/users/1", nil)
+		req := httptest.NewRequest("GET", "/users/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -177,7 +177,7 @@ func TestUserHandler_Get(t *testing.T) {
 
 		mockService.On("GetByID", uint(999)).Return(domain.User{}, errors.New("user not found"))
 
-		req := httptest.NewRequest("GET", "/users/999", nil)
+		req := httptest.NewRequest("GET", "/users/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -197,7 +197,7 @@ func TestUserHandler_Get(t *testing.T) {
 		// Note: Gin will convert "invalid" to 0, so this tests the zero ID case
 		mockService.On("GetByID", uint(0)).Return(domain.User{}, errors.New("user not found"))
 
-		req := httptest.NewRequest("GET", "/users/invalid", nil)
+		req := httptest.NewRequest("GET", "/users/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -257,7 +257,8 @@ func TestUserHandler_Register(t *testing.T) {
 			LastName:  "Doe",
 		}
 
-		mockService.On("Register", "existing@example.com", "password123", "John", "Doe").Return((*domain.User)(nil), errors.New("user already exists"))
+		mockService.On("Register", "existing@example.com", "password123", "John", "Doe").
+			Return((*domain.User)(nil), errors.New("user already exists"))
 
 		requestBody, _ := json.Marshal(registerReq)
 		req := httptest.NewRequest("POST", "/register", bytes.NewBuffer(requestBody))

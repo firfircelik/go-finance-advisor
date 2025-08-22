@@ -95,7 +95,10 @@ func TestTransactionRepository_ListByUser(t *testing.T) {
 			name:   "successful transaction list retrieval",
 			userID: 1,
 			setup: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "user_id", "category_id", "amount", "description", "type", "date"}).
+				rows := sqlmock.NewRows([]string{
+					"id", "created_at", "updated_at", "deleted_at", "user_id",
+					"category_id", "amount", "description", "type", "date",
+				}).
 					AddRow(1, testDate, testDate, nil, 1, 1, 100.50, "Grocery shopping", "expense", testDate).
 					AddRow(2, testDate, testDate, nil, 1, 2, 2500.00, "Monthly salary", "income", testDate)
 				mock.ExpectQuery("SELECT \\* FROM `transactions`").
@@ -128,7 +131,10 @@ func TestTransactionRepository_ListByUser(t *testing.T) {
 			name:   "empty transaction list",
 			userID: 2,
 			setup: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "user_id", "category_id", "amount", "description", "type", "date"})
+				rows := sqlmock.NewRows([]string{
+					"id", "created_at", "updated_at", "deleted_at", "user_id",
+					"category_id", "amount", "description", "type", "date",
+				})
 				mock.ExpectQuery("SELECT \\* FROM `transactions`").
 					WithArgs(2).
 					WillReturnRows(rows)
@@ -165,20 +171,23 @@ func TestTransactionRepository_ListByUser(t *testing.T) {
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, transactions)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, len(tt.expected), len(transactions))
-				for i, expected := range tt.expected {
-					if i < len(transactions) {
-						assert.Equal(t, expected.ID, transactions[i].ID)
-						assert.Equal(t, expected.UserID, transactions[i].UserID)
-						assert.Equal(t, expected.Amount, transactions[i].Amount)
-						assert.Equal(t, expected.Description, transactions[i].Description)
-						assert.Equal(t, expected.Type, transactions[i].Type)
-						assert.Equal(t, expected.CategoryID, transactions[i].CategoryID)
-						assert.Equal(t, expected.Date.Unix(), transactions[i].Date.Unix())
-					}
+				assert.NoError(t, mock.ExpectationsWereMet())
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, len(tt.expected), len(transactions))
+			for i, expected := range tt.expected {
+				if i >= len(transactions) {
+					continue
 				}
+				assert.Equal(t, expected.ID, transactions[i].ID)
+				assert.Equal(t, expected.UserID, transactions[i].UserID)
+				assert.Equal(t, expected.Amount, transactions[i].Amount)
+				assert.Equal(t, expected.Description, transactions[i].Description)
+				assert.Equal(t, expected.Type, transactions[i].Type)
+				assert.Equal(t, expected.CategoryID, transactions[i].CategoryID)
+				assert.Equal(t, expected.Date.Unix(), transactions[i].Date.Unix())
 			}
 
 			assert.NoError(t, mock.ExpectationsWereMet())

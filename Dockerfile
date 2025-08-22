@@ -1,5 +1,10 @@
 # Build stage
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
+
+# Build arguments
+ARG VERSION=dev
+ARG BUILD_TIME=unknown
+ARG GIT_COMMIT=unknown
 
 # Install git and ca-certificates (needed for fetching dependencies and HTTPS)
 RUN apk add --no-cache git ca-certificates tzdata
@@ -20,9 +25,9 @@ RUN go mod verify
 # Copy source code
 COPY . .
 
-# Build the binary with optimizations
+# Build the binary with optimizations and version info
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static"' \
+    -ldflags="-w -s -extldflags '-static' -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME} -X main.gitCommit=${GIT_COMMIT}" \
     -a -installsuffix cgo \
     -o finance-advisor \
     ./cmd/api

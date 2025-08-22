@@ -18,7 +18,13 @@ import (
 type TransactionServiceInterface interface {
 	Create(transaction *domain.Transaction) error
 	GetByID(id uint) (*domain.Transaction, error)
-	ListWithFilters(userID uint, transactionType *string, categoryID *uint, startDate, endDate *time.Time, limit, offset int) ([]domain.Transaction, error)
+	ListWithFilters(
+		userID uint,
+		transactionType *string,
+		categoryID *uint,
+		startDate, endDate *time.Time,
+		limit, offset int,
+	) ([]domain.Transaction, error)
 	Update(transaction *domain.Transaction) error
 	Delete(id uint) error
 }
@@ -48,8 +54,8 @@ func (h *TransactionHandler) Create(c *gin.Context) {
 	}
 
 	var req CreateTransactionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})
 		return
 	}
 
@@ -115,8 +121,8 @@ func (h *TransactionHandler) List(c *gin.Context) {
 
 	var categoryID *uint
 	if categoryIDStr != "" {
-		catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
-		if err != nil {
+		catID, parseErr := strconv.ParseUint(categoryIDStr, 10, 32)
+		if parseErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
 			return
 		}
@@ -126,8 +132,8 @@ func (h *TransactionHandler) List(c *gin.Context) {
 
 	var startDate, endDate *time.Time
 	if startDateStr != "" {
-		start, err := time.Parse("2006-01-02", startDateStr)
-		if err != nil {
+		start, parseErr := time.Parse("2006-01-02", startDateStr)
+		if parseErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
 			return
 		}
@@ -135,8 +141,8 @@ func (h *TransactionHandler) List(c *gin.Context) {
 	}
 
 	if endDateStr != "" {
-		end, err := time.Parse("2006-01-02", endDateStr)
-		if err != nil {
+		end, parseErr := time.Parse("2006-01-02", endDateStr)
+		if parseErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
 			return
 		}
@@ -187,8 +193,8 @@ func (h *TransactionHandler) Update(c *gin.Context) {
 	}
 
 	var req CreateTransactionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})
 		return
 	}
 
@@ -238,14 +244,60 @@ func (h *TransactionHandler) Delete(c *gin.Context) {
 
 // ExportCSV exports transactions as CSV
 func (h *TransactionHandler) ExportCSV(c *gin.Context) {
-	userIDStr := c.Param("userId")
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	filters, err := h.parseExportFilters(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Get query parameters for filtering
+	transactions, err := h.Service.ListWithFilters(
+		filters.UserID,
+		filters.TransactionType,
+		filters.CategoryID,
+		filters.StartDate,
+		filters.EndDate,
+		filters.Limit,
+		filters.Offset,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
+		return
+	}
+
+	buf, err := h.generateCSVContent(transactions)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate CSV"})
+		return
+	}
+
+	// Set headers for file download
+	filename := fmt.Sprintf("transactions_%d_%s.csv", filters.UserID, time.Now().Format("20060102_150405"))
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Length", fmt.Sprintf("%d", buf.Len()))
+
+	c.Data(http.StatusOK, "text/csv", buf.Bytes())
+}
+
+// ExportFilters holds export filter parameters
+type ExportFilters struct {
+	UserID          uint
+	TransactionType *string
+	CategoryID      *uint
+	StartDate       *time.Time
+	EndDate         *time.Time
+	Limit           int
+	Offset          int
+}
+
+// parseExportFilters parses and validates export filter parameters
+func (h *TransactionHandler) parseExportFilters(c *gin.Context) (*ExportFilters, error) {
+	userIDStr := c.Param("userId")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID")
+	}
+
 	transactionTypeStr := c.Query("type")
 	categoryIDStr := c.Query("category_id")
 	startDateStr := c.Query("start_date")
@@ -256,60 +308,58 @@ func (h *TransactionHandler) ExportCSV(c *gin.Context) {
 	limit, _ := strconv.Atoi(limitStr)
 	offset, _ := strconv.Atoi(offsetStr)
 
-	var transactionType *string
-	if transactionTypeStr != "" {
-		transactionType = &transactionTypeStr
+	filters := &ExportFilters{
+		UserID: uint(userID),
+		Limit:  limit,
+		Offset: offset,
 	}
 
-	var categoryID *uint
+	if transactionTypeStr != "" {
+		filters.TransactionType = &transactionTypeStr
+	}
+
 	if categoryIDStr != "" {
-		catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
-			return
+		catID, parseErr := strconv.ParseUint(categoryIDStr, 10, 32)
+		if parseErr != nil {
+			return nil, fmt.Errorf("invalid category ID")
 		}
 		catIDUint := uint(catID)
-		categoryID = &catIDUint
+		filters.CategoryID = &catIDUint
 	}
 
-	var startDate, endDate *time.Time
 	if startDateStr != "" {
-		start, err := time.Parse("2006-01-02", startDateStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
-			return
+		start, parseErr := time.Parse("2006-01-02", startDateStr)
+		if parseErr != nil {
+			return nil, fmt.Errorf("invalid start date format. Use YYYY-MM-DD")
 		}
-		startDate = &start
+		filters.StartDate = &start
 	}
 
 	if endDateStr != "" {
-		end, err := time.Parse("2006-01-02", endDateStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
-			return
+		end, parseErr := time.Parse("2006-01-02", endDateStr)
+		if parseErr != nil {
+			return nil, fmt.Errorf("invalid end date format. Use YYYY-MM-DD")
 		}
-		endDate = &end
+		filters.EndDate = &end
 	}
 
-	transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
-		return
-	}
+	return filters, nil
+}
 
-	// Create CSV buffer
+// generateCSVContent generates CSV content for export
+func (h *TransactionHandler) generateCSVContent(transactions []domain.Transaction) (*bytes.Buffer, error) {
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
 	// Write CSV header
 	header := []string{"ID", "Amount", "Type", "Description", "Category ID", "Date", "Created At"}
 	if err := writer.Write(header); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write CSV header"})
-		return
+		return nil, err
 	}
 
 	// Write transaction data
-	for _, transaction := range transactions {
+	for i := range transactions {
+		transaction := &transactions[i]
 		record := []string{
 			fmt.Sprintf("%d", transaction.ID),
 			fmt.Sprintf("%.2f", transaction.Amount),
@@ -320,89 +370,20 @@ func (h *TransactionHandler) ExportCSV(c *gin.Context) {
 			transaction.CreatedAt.Format("2006-01-02 15:04:05"),
 		}
 		if err := writer.Write(record); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write CSV record"})
-			return
+			return nil, err
 		}
 	}
 
 	writer.Flush()
 	if err := writer.Error(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to flush CSV writer"})
-		return
+		return nil, err
 	}
 
-	// Set headers for file download
-	filename := fmt.Sprintf("transactions_%d_%s.csv", userID, time.Now().Format("20060102_150405"))
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-	c.Header("Content-Type", "text/csv")
-	c.Header("Content-Length", fmt.Sprintf("%d", buf.Len()))
-
-	c.Data(http.StatusOK, "text/csv", buf.Bytes())
+	return &buf, nil
 }
 
-// ExportPDF exports transactions as PDF (simplified version)
-func (h *TransactionHandler) ExportPDF(c *gin.Context) {
-	userIDStr := c.Param("userId")
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
-	// Get query parameters for filtering
-	transactionTypeStr := c.Query("type")
-	categoryIDStr := c.Query("category_id")
-	startDateStr := c.Query("start_date")
-	endDateStr := c.Query("end_date")
-	limitStr := c.DefaultQuery("limit", "100")
-	offsetStr := c.DefaultQuery("offset", "0")
-
-	limit, _ := strconv.Atoi(limitStr)
-	offset, _ := strconv.Atoi(offsetStr)
-
-	var transactionType *string
-	if transactionTypeStr != "" {
-		transactionType = &transactionTypeStr
-	}
-
-	var categoryID *uint
-	if categoryIDStr != "" {
-		catID, err := strconv.ParseUint(categoryIDStr, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
-			return
-		}
-		catIDUint := uint(catID)
-		categoryID = &catIDUint
-	}
-
-	var startDate, endDate *time.Time
-	if startDateStr != "" {
-		start, err := time.Parse("2006-01-02", startDateStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
-			return
-		}
-		startDate = &start
-	}
-
-	if endDateStr != "" {
-		end, err := time.Parse("2006-01-02", endDateStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
-			return
-		}
-		endDate = &end
-	}
-
-	transactions, err := h.Service.ListWithFilters(uint(userID), transactionType, categoryID, startDate, endDate, limit, offset)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
-		return
-	}
-
-	// Create simple HTML content for PDF (this is a basic implementation)
-	// In a real application, you would use a proper PDF library like gofpdf
+// generateHTMLContent generates HTML content for PDF export
+func (h *TransactionHandler) generateHTMLContent(transactions []domain.Transaction) string {
 	var htmlContent bytes.Buffer
 	htmlContent.WriteString(`<!DOCTYPE html>
 <html>
@@ -431,7 +412,8 @@ func (h *TransactionHandler) ExportPDF(c *gin.Context) {
             <th>Date</th>
         </tr>`)
 
-	for _, transaction := range transactions {
+	for i := range transactions {
+		transaction := &transactions[i]
 		htmlContent.WriteString(fmt.Sprintf(`
         <tr>
             <td>%d</td>
@@ -453,12 +435,38 @@ func (h *TransactionHandler) ExportPDF(c *gin.Context) {
     </table>
 </body>
 </html>`)
+	return htmlContent.String()
+}
+
+// ExportPDF exports transactions as PDF (simplified version)
+func (h *TransactionHandler) ExportPDF(c *gin.Context) {
+	filters, err := h.parseExportFilters(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	transactions, err := h.Service.ListWithFilters(
+		filters.UserID,
+		filters.TransactionType,
+		filters.CategoryID,
+		filters.StartDate,
+		filters.EndDate,
+		filters.Limit,
+		filters.Offset,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions"})
+		return
+	}
+
+	htmlContent := h.generateHTMLContent(transactions)
 
 	// Set headers for file download
-	filename := fmt.Sprintf("transactions_%d_%s.html", userID, time.Now().Format("20060102_150405"))
+	filename := fmt.Sprintf("transactions_%d_%s.html", filters.UserID, time.Now().Format("20060102_150405"))
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 	c.Header("Content-Type", "text/html")
-	c.Header("Content-Length", fmt.Sprintf("%d", htmlContent.Len()))
+	c.Header("Content-Length", fmt.Sprintf("%d", len(htmlContent)))
 
-	c.Data(http.StatusOK, "text/html", htmlContent.Bytes())
+	c.Data(http.StatusOK, "text/html", []byte(htmlContent))
 }

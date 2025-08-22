@@ -1,10 +1,13 @@
+// Package persistence provides database access layer implementations.
+// It contains repository implementations and database connection utilities.
 package persistence
 
 import (
 	"log"
 
-	sqlite "github.com/glebarez/sqlite"
 	"go-finance-advisor/internal/domain"
+
+	sqlite "github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go-finance-advisor/internal/domain"
+
 	"gorm.io/gorm"
 )
 

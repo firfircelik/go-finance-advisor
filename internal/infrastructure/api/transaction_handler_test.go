@@ -34,7 +34,10 @@ func (m *MockTransactionService) GetByID(id uint) (*domain.Transaction, error) {
 	return args.Get(0).(*domain.Transaction), args.Error(1)
 }
 
-func (m *MockTransactionService) ListWithFilters(userID uint, transactionType *string, categoryID *uint, startDate, endDate *time.Time, limit, offset int) ([]domain.Transaction, error) {
+func (m *MockTransactionService) ListWithFilters(
+	userID uint, transactionType *string, categoryID *uint,
+	startDate, endDate *time.Time, limit, offset int,
+) ([]domain.Transaction, error) {
 	args := m.Called(userID, transactionType, categoryID, startDate, endDate, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -307,9 +310,11 @@ func TestTransactionHandler_List(t *testing.T) {
 			},
 		}
 
-		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil), (*time.Time)(nil), (*time.Time)(nil), 100, 0).Return(expectedTransactions, nil)
+		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil),
+			(*time.Time)(nil), (*time.Time)(nil), 100, 0).
+			Return(expectedTransactions, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/transactions", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -347,7 +352,9 @@ func TestTransactionHandler_List(t *testing.T) {
 
 		mockService.On("ListWithFilters", uint(1), &expenseType, &categoryID, &startDate, &endDate, 50, 10).Return(expectedTransactions, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/transactions?type=expense&category_id=1&start_date=2024-01-01&end_date=2024-01-31&limit=50&offset=10", nil)
+		req := httptest.NewRequest("GET",
+			"/users/1/transactions?type=expense&category_id=1&start_date=2024-01-01&end_date=2024-01-31&limit=50&offset=10",
+			http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -365,7 +372,7 @@ func TestTransactionHandler_List(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions", handler.List)
 
-		req := httptest.NewRequest("GET", "/users/invalid/transactions", nil)
+		req := httptest.NewRequest("GET", "/users/invalid/transactions", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -381,7 +388,7 @@ func TestTransactionHandler_List(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions", handler.List)
 
-		req := httptest.NewRequest("GET", "/users/1/transactions?category_id=invalid", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions?category_id=invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -397,7 +404,7 @@ func TestTransactionHandler_List(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions", handler.List)
 
-		req := httptest.NewRequest("GET", "/users/1/transactions?start_date=invalid-date", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions?start_date=invalid-date", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -413,9 +420,11 @@ func TestTransactionHandler_List(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions", handler.List)
 
-		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil), (*time.Time)(nil), (*time.Time)(nil), 100, 0).Return([]domain.Transaction{}, errors.New("database error"))
+		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil),
+			(*time.Time)(nil), (*time.Time)(nil), 100, 0).
+			Return([]domain.Transaction{}, errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/users/1/transactions", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -447,9 +456,11 @@ func TestTransactionHandler_ExportCSV(t *testing.T) {
 			},
 		}
 
-		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil), (*time.Time)(nil), (*time.Time)(nil), 100, 0).Return(expectedTransactions, nil)
+		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil),
+			(*time.Time)(nil), (*time.Time)(nil), 100, 0).
+			Return(expectedTransactions, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/transactions/export/csv", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions/export/csv", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -467,7 +478,7 @@ func TestTransactionHandler_ExportCSV(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions/export/csv", handler.ExportCSV)
 
-		req := httptest.NewRequest("GET", "/users/invalid/transactions/export/csv", nil)
+		req := httptest.NewRequest("GET", "/users/invalid/transactions/export/csv", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -483,9 +494,11 @@ func TestTransactionHandler_ExportCSV(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions/export/csv", handler.ExportCSV)
 
-		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil), (*time.Time)(nil), (*time.Time)(nil), 100, 0).Return([]domain.Transaction{}, errors.New("database error"))
+		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil),
+			(*time.Time)(nil), (*time.Time)(nil), 100, 0).
+			Return([]domain.Transaction{}, errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/users/1/transactions/export/csv", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions/export/csv", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -516,9 +529,11 @@ func TestTransactionHandler_ExportPDF(t *testing.T) {
 			},
 		}
 
-		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil), (*time.Time)(nil), (*time.Time)(nil), 100, 0).Return(expectedTransactions, nil)
+		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil),
+			(*time.Time)(nil), (*time.Time)(nil), 100, 0).
+			Return(expectedTransactions, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/transactions/export/pdf", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions/export/pdf", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -537,7 +552,7 @@ func TestTransactionHandler_ExportPDF(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions/export/pdf", handler.ExportPDF)
 
-		req := httptest.NewRequest("GET", "/users/invalid/transactions/export/pdf", nil)
+		req := httptest.NewRequest("GET", "/users/invalid/transactions/export/pdf", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -553,9 +568,11 @@ func TestTransactionHandler_ExportPDF(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/transactions/export/pdf", handler.ExportPDF)
 
-		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil), (*time.Time)(nil), (*time.Time)(nil), 100, 0).Return([]domain.Transaction{}, errors.New("database error"))
+		mockService.On("ListWithFilters", uint(1), (*string)(nil), (*uint)(nil),
+			(*time.Time)(nil), (*time.Time)(nil), 100, 0).
+			Return([]domain.Transaction{}, errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/users/1/transactions/export/pdf", nil)
+		req := httptest.NewRequest("GET", "/users/1/transactions/export/pdf", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -586,7 +603,7 @@ func TestTransactionHandler_GetByID(t *testing.T) {
 
 		mockService.On("GetByID", uint(1)).Return(expectedTransaction, nil)
 
-		req := httptest.NewRequest("GET", "/transactions/1", nil)
+		req := httptest.NewRequest("GET", "/transactions/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -606,7 +623,7 @@ func TestTransactionHandler_GetByID(t *testing.T) {
 
 		mockService.On("GetByID", uint(999)).Return(nil, errors.New("transaction not found"))
 
-		req := httptest.NewRequest("GET", "/transactions/999", nil)
+		req := httptest.NewRequest("GET", "/transactions/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -623,7 +640,7 @@ func TestTransactionHandler_GetByID(t *testing.T) {
 		router := setupGin()
 		router.GET("/transactions/:id", handler.GetByID)
 
-		req := httptest.NewRequest("GET", "/transactions/invalid", nil)
+		req := httptest.NewRequest("GET", "/transactions/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -710,7 +727,7 @@ func TestTransactionHandler_Delete(t *testing.T) {
 
 		mockService.On("Delete", uint(1)).Return(nil)
 
-		req := httptest.NewRequest("DELETE", "/transactions/1", nil)
+		req := httptest.NewRequest("DELETE", "/transactions/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -729,7 +746,7 @@ func TestTransactionHandler_Delete(t *testing.T) {
 
 		mockService.On("Delete", uint(999)).Return(errors.New("transaction not found"))
 
-		req := httptest.NewRequest("DELETE", "/transactions/999", nil)
+		req := httptest.NewRequest("DELETE", "/transactions/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -746,7 +763,7 @@ func TestTransactionHandler_Delete(t *testing.T) {
 		router := setupGin()
 		router.DELETE("/transactions/:id", handler.Delete)
 
-		req := httptest.NewRequest("DELETE", "/transactions/invalid", nil)
+		req := httptest.NewRequest("DELETE", "/transactions/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)

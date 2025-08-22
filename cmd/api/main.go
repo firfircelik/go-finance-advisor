@@ -1,7 +1,10 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
+	"os"
 
 	"go-finance-advisor/internal/application"
 	"go-finance-advisor/internal/domain"
@@ -14,7 +17,34 @@ import (
 	"gorm.io/gorm"
 )
 
+// Build information (set via ldflags)
+var (
+	version   = "dev"
+	buildTime = "unknown"
+	gitCommit = "unknown"
+)
+
 func main() {
+	// Parse command line flags
+	versionFlag := flag.Bool("version", false, "Show version information")
+	healthFlag := flag.Bool("health", false, "Perform health check")
+	flag.Parse()
+
+	// Handle version flag
+	if *versionFlag {
+		fmt.Printf("Finance Advisor API\n")
+		fmt.Printf("Version: %s\n", version)
+		fmt.Printf("Build Time: %s\n", buildTime)
+		fmt.Printf("Git Commit: %s\n", gitCommit)
+		os.Exit(0)
+	}
+
+	// Handle health check flag
+	if *healthFlag {
+		fmt.Println("OK")
+		os.Exit(0)
+	}
+
 	// Database setup
 	db, err := gorm.Open(sqlite.Open("finance.db"), &gorm.Config{})
 	if err != nil {

@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"go-finance-advisor/internal/domain"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go-finance-advisor/internal/domain"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

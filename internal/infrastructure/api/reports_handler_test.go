@@ -8,10 +8,11 @@ import (
 	"testing"
 	"time"
 
+	"go-finance-advisor/internal/domain"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go-finance-advisor/internal/domain"
 )
 
 // MockReportsService is a mock implementation of ReportsService
@@ -412,7 +413,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "1"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01&end_date=2023-06-30", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01&end_date=2023-06-30", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 
@@ -438,7 +439,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "invalid"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/invalid?start_date=2023-01-01&end_date=2023-06-30", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/invalid?start_date=2023-01-01&end_date=2023-06-30", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 
@@ -457,7 +458,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "1"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/1?end_date=2023-06-30", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/1?end_date=2023-06-30", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 
@@ -476,7 +477,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "1"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 
@@ -495,7 +496,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "1"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=invalid&end_date=2023-06-30", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=invalid&end_date=2023-06-30", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 
@@ -514,7 +515,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "1"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01&end_date=invalid", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01&end_date=invalid", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 
@@ -533,7 +534,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "1"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-06-30&end_date=2023-01-01", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-06-30&end_date=2023-01-01", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 
@@ -555,7 +556,7 @@ func TestReportsHandler_GenerateCustomReport(t *testing.T) {
 		c.Params = gin.Params{
 			{Key: "userId", Value: "1"},
 		}
-		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01&end_date=2023-06-30", nil)
+		c.Request = httptest.NewRequest("GET", "/reports/custom/1?start_date=2023-01-01&end_date=2023-06-30", http.NoBody)
 
 		handler.GenerateCustomReport(c)
 

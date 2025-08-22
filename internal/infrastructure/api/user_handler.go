@@ -10,6 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Risk tolerance constants
+const (
+	riskToleranceConservative = "conservative"
+	riskToleranceModerate     = "moderate"
+	riskToleranceAggressive   = "aggressive"
+)
+
 // UserServiceInterface defines the contract for user service operations
 type UserServiceInterface interface {
 	Create(user *domain.User) error
@@ -35,7 +42,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		return
 	}
 	if u.RiskTolerance == "" {
-		u.RiskTolerance = "moderate"
+		u.RiskTolerance = riskToleranceModerate
 	}
 	if err := h.Service.Create(&u); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error"})
@@ -46,7 +53,12 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 func (h *UserHandler) Get(c *gin.Context) {
 	idStr := c.Param("userId")
-	id, _ := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
 	u, err := h.Service.GetByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -150,8 +162,15 @@ func (h *UserHandler) UpdateRisk(c *gin.Context) {
 	}
 
 	// Validate risk tolerance
-	if req.RiskTolerance != "conservative" && req.RiskTolerance != "moderate" && req.RiskTolerance != "aggressive" {
+	if req.RiskTolerance != riskToleranceConservative &&
+		req.RiskTolerance != riskToleranceModerate &&
+		req.RiskTolerance != riskToleranceAggressive {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid risk tolerance"})
+		return
+	}
+
+	if id < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
 		return
 	}
 

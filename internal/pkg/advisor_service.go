@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go-finance-advisor/internal/domain"
 	"math"
 	"net/http"
 	"strings"
 	"time"
+
+	"go-finance-advisor/internal/domain"
 )
 
 // Risk tolerance constants
@@ -331,143 +332,159 @@ func (s *RealTimeMarketService) generateMarketRecommendation(trend, volatility s
 	}
 }
 
-func (s *RealTimeMarketService) GenerateRecommendations(riskTolerance string, monthlyIncome float64, analysis *MarketAnalysis) []domain.Recommendation {
-	var recommendations []domain.Recommendation
+func (s *RealTimeMarketService) GenerateRecommendations(
+	riskTolerance string,
+	monthlyIncome float64,
+	analysis *MarketAnalysis,
+) []domain.Recommendation {
 	investableAmount := monthlyIncome * 0.2 // 20% of income for investments
 
 	switch riskTolerance {
 	case "conservative":
-		recommendations = append(recommendations,
-			domain.Recommendation{
-				Type:         "bond",
-				Symbol:       "GOVT",
-				Action:       "buy",
-				Reason:       "Low-risk government bonds for stable returns",
-				Confidence:   85.0,
-				CurrentPrice: investableAmount * 0.6,
-				RiskLevel:    riskLevelLow,
-				Timeframe:    "long",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "stock",
-				Symbol:       "SPY",
-				Action:       "buy",
-				Reason:       "Blue chip stocks for steady growth",
-				Confidence:   80.0,
-				CurrentPrice: investableAmount * 0.3,
-				RiskLevel:    riskLevelLow,
-				Timeframe:    "medium",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "crypto",
-				Symbol:       "BTC",
-				Action:       "buy",
-				Reason:       "Small allocation to Bitcoin for diversification",
-				Confidence:   70.0,
-				CurrentPrice: investableAmount * 0.1,
-				RiskLevel:    "medium",
-				Timeframe:    "long",
-				IsActive:     true,
-			},
-		)
-
+		return s.generateConservativeRecommendations(investableAmount)
 	case riskToleranceModerate:
-		recommendations = append(recommendations,
-			domain.Recommendation{
-				Type:         "stock",
-				Symbol:       "SPY",
-				Action:       "buy",
-				Reason:       "S&P 500 index funds for balanced growth",
-				Confidence:   85.0,
-				CurrentPrice: investableAmount * 0.4,
-				RiskLevel:    "medium",
-				Timeframe:    "medium",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "stock",
-				Symbol:       "QQQ",
-				Action:       "buy",
-				Reason:       "Growth stocks for higher potential returns",
-				Confidence:   75.0,
-				CurrentPrice: investableAmount * 0.3,
-				RiskLevel:    "medium",
-				Timeframe:    "medium",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "crypto",
-				Symbol:       "BTC",
-				Action:       "buy",
-				Reason:       "Bitcoin allocation for portfolio diversification",
-				Confidence:   70.0,
-				CurrentPrice: investableAmount * 0.2,
-				RiskLevel:    riskLevelHigh,
-				Timeframe:    "long",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "crypto",
-				Symbol:       "ETH",
-				Action:       "buy",
-				Reason:       "Ethereum for smart contract exposure",
-				Confidence:   65.0,
-				CurrentPrice: investableAmount * 0.1,
-				RiskLevel:    riskLevelHigh,
-				Timeframe:    "medium",
-			})
-
+		return s.generateModerateRecommendations(investableAmount)
 	case riskToleranceAggressive:
-		recommendations = append(recommendations,
-			domain.Recommendation{
-				Type:         "stock",
-				Symbol:       "QQQ",
-				Action:       "buy",
-				Reason:       "High-growth technology stocks for maximum returns",
-				Confidence:   70.0,
-				CurrentPrice: investableAmount * 0.3,
-				RiskLevel:    riskLevelHigh,
-				Timeframe:    "short",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "crypto",
-				Symbol:       "BTC",
-				Action:       "buy",
-				Reason:       "Major Bitcoin allocation for high growth potential",
-				Confidence:   65.0,
-				CurrentPrice: investableAmount * 0.3,
-				RiskLevel:    riskLevelHigh,
-				Timeframe:    "medium",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "crypto",
-				Symbol:       "ETH",
-				Action:       "buy",
-				Reason:       "Ethereum for DeFi and smart contract exposure",
-				Confidence:   60.0,
-				CurrentPrice: investableAmount * 0.2,
-				RiskLevel:    riskLevelHigh,
-				Timeframe:    "medium",
-				IsActive:     true,
-			},
-			domain.Recommendation{
-				Type:         "crypto",
-				Symbol:       "ALT",
-				Action:       "buy",
-				Reason:       "Diversified altcoin portfolio for explosive growth",
-				Confidence:   50.0,
-				CurrentPrice: investableAmount * 0.2,
-				RiskLevel:    riskLevelHigh,
-				Timeframe:    "short",
-				IsActive:     true,
-			})
+		return s.generateAggressiveRecommendations(investableAmount)
+	default:
+		return s.generateModerateRecommendations(investableAmount)
 	}
+}
 
-	return recommendations
+func (s *RealTimeMarketService) generateConservativeRecommendations(investableAmount float64) []domain.Recommendation {
+	return []domain.Recommendation{
+		{
+			Type:         "bond",
+			Symbol:       "GOVT",
+			Action:       "buy",
+			Reason:       "Low-risk government bonds for stable returns",
+			Confidence:   85.0,
+			CurrentPrice: investableAmount * 0.6,
+			RiskLevel:    riskLevelLow,
+			Timeframe:    "long",
+			IsActive:     true,
+		},
+		{
+			Type:         "stock",
+			Symbol:       "SPY",
+			Action:       "buy",
+			Reason:       "Blue chip stocks for steady growth",
+			Confidence:   80.0,
+			CurrentPrice: investableAmount * 0.3,
+			RiskLevel:    riskLevelLow,
+			Timeframe:    "medium",
+			IsActive:     true,
+		},
+		{
+			Type:         "crypto",
+			Symbol:       "BTC",
+			Action:       "buy",
+			Reason:       "Small allocation to Bitcoin for diversification",
+			Confidence:   70.0,
+			CurrentPrice: investableAmount * 0.1,
+			RiskLevel:    "medium",
+			Timeframe:    "long",
+			IsActive:     true,
+		},
+	}
+}
+
+func (s *RealTimeMarketService) generateModerateRecommendations(investableAmount float64) []domain.Recommendation {
+	return []domain.Recommendation{
+		{
+			Type:         "stock",
+			Symbol:       "SPY",
+			Action:       "buy",
+			Reason:       "S&P 500 index funds for balanced growth",
+			Confidence:   85.0,
+			CurrentPrice: investableAmount * 0.4,
+			RiskLevel:    "medium",
+			Timeframe:    "medium",
+			IsActive:     true,
+		},
+		{
+			Type:         "stock",
+			Symbol:       "QQQ",
+			Action:       "buy",
+			Reason:       "Growth stocks for higher potential returns",
+			Confidence:   75.0,
+			CurrentPrice: investableAmount * 0.3,
+			RiskLevel:    "medium",
+			Timeframe:    "medium",
+			IsActive:     true,
+		},
+		{
+			Type:         "crypto",
+			Symbol:       "BTC",
+			Action:       "buy",
+			Reason:       "Bitcoin allocation for portfolio diversification",
+			Confidence:   70.0,
+			CurrentPrice: investableAmount * 0.2,
+			RiskLevel:    riskLevelHigh,
+			Timeframe:    "long",
+			IsActive:     true,
+		},
+		{
+			Type:         "crypto",
+			Symbol:       "ETH",
+			Action:       "buy",
+			Reason:       "Ethereum for smart contract exposure",
+			Confidence:   65.0,
+			CurrentPrice: investableAmount * 0.1,
+			RiskLevel:    riskLevelHigh,
+			Timeframe:    "medium",
+			IsActive:     true,
+		},
+	}
+}
+
+func (s *RealTimeMarketService) generateAggressiveRecommendations(investableAmount float64) []domain.Recommendation {
+	return []domain.Recommendation{
+		{
+			Type:         "stock",
+			Symbol:       "QQQ",
+			Action:       "buy",
+			Reason:       "High-growth technology stocks for maximum returns",
+			Confidence:   70.0,
+			CurrentPrice: investableAmount * 0.3,
+			RiskLevel:    riskLevelHigh,
+			Timeframe:    "short",
+			IsActive:     true,
+		},
+		{
+			Type:         "crypto",
+			Symbol:       "BTC",
+			Action:       "buy",
+			Reason:       "Major Bitcoin allocation for high growth potential",
+			Confidence:   65.0,
+			CurrentPrice: investableAmount * 0.3,
+			RiskLevel:    riskLevelHigh,
+			Timeframe:    "medium",
+			IsActive:     true,
+		},
+		{
+			Type:         "crypto",
+			Symbol:       "ETH",
+			Action:       "buy",
+			Reason:       "Ethereum for DeFi and smart contract exposure",
+			Confidence:   60.0,
+			CurrentPrice: investableAmount * 0.2,
+			RiskLevel:    riskLevelHigh,
+			Timeframe:    "medium",
+			IsActive:     true,
+		},
+		{
+			Type:         "crypto",
+			Symbol:       "ALT",
+			Action:       "buy",
+			Reason:       "Diversified altcoin portfolio for explosive growth",
+			Confidence:   50.0,
+			CurrentPrice: investableAmount * 0.2,
+			RiskLevel:    riskLevelHigh,
+			Timeframe:    "short",
+			IsActive:     true,
+		},
+	}
 }
 
 func (s *RealTimeMarketService) GenerateAdviceText(riskTolerance string, analysis *MarketAnalysis) string {

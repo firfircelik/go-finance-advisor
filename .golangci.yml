@@ -56,6 +56,15 @@ linters-settings:
       # is allowed to use only in logutils package
     packages-with-error-message:
       - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
+    rules:
+      main:
+        files:
+          - "!**/internal/infrastructure/persistence/**"
+          - "!**/*_test.go"
+          - "!**/cmd/**"
+        deny:
+          - pkg: "github.com/sirupsen/logrus"
+            desc: "logging is allowed only by logutils.Log"
 
   lll:
     line-length: 140

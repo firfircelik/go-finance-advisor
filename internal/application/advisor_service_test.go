@@ -245,7 +245,7 @@ func TestAdvisorService_GenerateAdvice(t *testing.T) {
 			RiskTolerance: "conservative",
 		}
 
-		advice, err := advisorService.GenerateAdvice(user)
+		advice, err := advisorService.GenerateAdvice(&user)
 		assert.NoError(t, err)
 		assert.NotNil(t, advice)
 
@@ -274,7 +274,7 @@ func TestAdvisorService_GenerateAdvice(t *testing.T) {
 			RiskTolerance: "aggressive",
 		}
 
-		advice, err := advisorService.GenerateAdvice(user)
+		advice, err := advisorService.GenerateAdvice(&user)
 		assert.NoError(t, err)
 		assert.NotNil(t, advice)
 
@@ -302,7 +302,7 @@ func TestAdvisorService_GenerateAdvice(t *testing.T) {
 			RiskTolerance: "moderate",
 		}
 
-		advice, err := advisorService.GenerateAdvice(user)
+		advice, err := advisorService.GenerateAdvice(&user)
 		assert.NoError(t, err)
 		assert.NotNil(t, advice)
 
@@ -330,7 +330,7 @@ func TestAdvisorService_GenerateAdvice(t *testing.T) {
 			RiskTolerance: "unknown",
 		}
 
-		advice, err := advisorService.GenerateAdvice(user)
+		advice, err := advisorService.GenerateAdvice(&user)
 		assert.NoError(t, err)
 		assert.NotNil(t, advice)
 
@@ -387,7 +387,7 @@ func TestAdvisorService_GenerateAdvice(t *testing.T) {
 			RiskTolerance: "moderate",
 		}
 
-		advice, err := advisorService.GenerateAdvice(user)
+		advice, err := advisorService.GenerateAdvice(&user)
 		assert.NoError(t, err)
 		assert.NotNil(t, advice)
 

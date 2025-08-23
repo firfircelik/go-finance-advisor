@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.23'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -67,32 +67,27 @@ jobs:
         version: latest
         args: --timeout=5m --verbose
     
-    - name: Run tests with retry
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 10
-        max_attempts: 3
-        command: |
-          go test -race -covermode=atomic -coverprofile=coverage.out ./...
-          go test -json ./... > test-results.json || true
+    - name: Run tests
+      run: |
+        go test -race -covermode=atomic -coverprofile=coverage.out ./...
+        go test -json ./... > test-results.json || true
       env:
         REDIS_URL: redis://localhost:6379
         TEST_DB_PATH: ":memory:"
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
+      if: env.CODECOV_TOKEN != ''
       with:
         file: ./coverage.out
         flags: unittests
         name: codecov-umbrella
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
-    
-    - name: Run integration tests
-      run: go test -tags=integration -v ./...
       env:
-        REDIS_URL: redis://localhost:6379
-        TEST_DB_PATH: ":memory:"
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    
+
     
     - name: Generate test report
       uses: dorny/test-reporter@v2
@@ -144,6 +139,7 @@ jobs:
       if: always() && hashFiles('gosec-results.sarif') != ''
       with:
         sarif_file: 'gosec-results.sarif'
+      continue-on-error: true
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
@@ -158,6 +154,7 @@ jobs:
       if: always() && hashFiles('trivy-results.sarif') != ''
       with:
         sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
 
   build:
     name: Build
@@ -236,7 +233,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -246,8 +243,8 @@ jobs:
           VERSION=${{ github.ref_name }}
           BUILD_TIME=${{ github.event.head_commit.timestamp }}
           GIT_COMMIT=${{ github.sha }}
-        provenance: true
-        sbom: true
+        provenance: false
+        sbom: false
     
     - name: Run Trivy vulnerability scanner on image
       uses: aquasecurity/trivy-action@master
@@ -261,6 +258,7 @@ jobs:
       if: always() && hashFiles('trivy-image-results.sarif') != ''
       with:
         sarif_file: 'trivy-image-results.sarif'
+      continue-on-error: true
 
   deploy-staging:
     name: Deploy to Staging

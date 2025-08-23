@@ -48,7 +48,7 @@ func BenchmarkGenerateAdvice(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := advisorService.GenerateAdvice(user)
+		_, err := advisorService.GenerateAdvice(&user)
 		if err != nil {
 			b.Fatal(err)
 		}

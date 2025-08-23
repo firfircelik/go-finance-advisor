@@ -23,6 +23,9 @@ type MockAdvisorService struct {
 
 func (m *MockAdvisorService) GenerateAdvice(user *domain.User) (*application.InvestmentAdvice, error) {
 	args := m.Called(user)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*application.InvestmentAdvice), args.Error(1)
 }
 
@@ -172,7 +175,9 @@ func TestAdvisorHandler_GetAdvice(t *testing.T) {
 		}
 
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
-		mockAdvisorService.On("GenerateAdvice", *user).Return(advice, nil)
+		mockAdvisorService.On("GenerateAdvice", mock.MatchedBy(func(u *domain.User) bool {
+			return u.ID == 1
+		})).Return(advice, nil)
 
 		req := httptest.NewRequest("GET", "/advice/1", http.NoBody)
 		w := httptest.NewRecorder()
@@ -219,7 +224,9 @@ func TestAdvisorHandler_GetAdvice(t *testing.T) {
 		}
 
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
-		mockAdvisorService.On("GenerateAdvice", *user).Return((*application.InvestmentAdvice)(nil), errors.New("advisor service error"))
+		mockAdvisorService.On("GenerateAdvice", mock.MatchedBy(func(u *domain.User) bool {
+			return u.ID == 1
+		})).Return((*application.InvestmentAdvice)(nil), errors.New("advisor service error"))
 
 		req := httptest.NewRequest("GET", "/advice/1", http.NoBody)
 		w := httptest.NewRecorder()

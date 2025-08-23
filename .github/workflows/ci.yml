@@ -346,14 +346,20 @@ jobs:
       id: changelog
       shell: bash
       run: |
-        delim="EOF_$(date +%s)_$RANDOM"
-        printf "CHANGELOG<<%s\n" "$delim" >> "$GITHUB_OUTPUT"
+        set -euo pipefail
+        tmpfile="$(mktemp)"
         if git describe --tags --abbrev=0 >/dev/null 2>&1; then
-          git log --pretty=format:"- %s (%h)" "$(git describe --tags --abbrev=0)..HEAD" >> "$GITHUB_OUTPUT"
+          git log --pretty=format:"- %s (%h)" "$(git describe --tags --abbrev=0)..HEAD" > "$tmpfile"
         else
-          git log --pretty=format:"- %s (%h)" >> "$GITHUB_OUTPUT"
+          git log --pretty=format:"- %s (%h)" > "$tmpfile"
         fi
-        printf "%s\n" "$delim" >> "$GITHUB_OUTPUT"
+        delim="EOF_$(date +%s)_$RANDOM"
+        {
+          echo "CHANGELOG<<$delim"
+          cat "$tmpfile"
+          echo "$delim"
+        } >> "$GITHUB_OUTPUT"
+        rm -f "$tmpfile"
     
     - name: Download build artifacts
       uses: actions/download-artifact@v4

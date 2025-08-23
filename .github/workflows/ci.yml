@@ -355,9 +355,12 @@ jobs:
         fi
         delim="EOF_$(date +%s)_$RANDOM"
         {
-          echo "CHANGELOG<<$delim"
-          cat "$tmpfile"
-          echo "$delim"
+        - echo "CHANGELOG<<$delim"
+        - cat "$tmpfile"
+        - echo "$delim"
+        + printf 'CHANGELOG<<%s\n' "$delim"
+        + cat "$tmpfile"
+        + printf '%s\n' "$delim"
         } >> "$GITHUB_OUTPUT"
         rm -f "$tmpfile"
     

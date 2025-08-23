@@ -144,6 +144,11 @@ grafana_data/
 secrets/
 *.secret
 *.private
+.secrets
+
+# Act (GitHub Actions local runner)
+.actrc.local
+act-*.log
 
 # Generated files
 generated/

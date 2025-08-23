@@ -20,22 +20,26 @@ type MockExportService struct {
 	mock.Mock
 }
 
-func (m *MockExportService) ExportTransactions(userID uint, format domain.ExportFormat, startDate, endDate *time.Time) ([]byte, string, error) {
+func (m *MockExportService) ExportTransactions(
+	userID uint, format domain.ExportFormat, startDate, endDate *time.Time,
+) (data []byte, filename string, err error) {
 	args := m.Called(userID, format, startDate, endDate)
 	return args.Get(0).([]byte), args.String(1), args.Error(2)
 }
 
-func (m *MockExportService) ExportBudgets(userID uint, format domain.ExportFormat) ([]byte, string, error) {
+func (m *MockExportService) ExportBudgets(userID uint, format domain.ExportFormat) (data []byte, filename string, err error) {
 	args := m.Called(userID, format)
 	return args.Get(0).([]byte), args.String(1), args.Error(2)
 }
 
-func (m *MockExportService) ExportFinancialReport(userID uint, reportType string, year, month int, format domain.ExportFormat) ([]byte, string, error) {
+func (m *MockExportService) ExportFinancialReport(
+	userID uint, reportType string, year, month int, format domain.ExportFormat,
+) (data []byte, filename string, err error) {
 	args := m.Called(userID, reportType, year, month, format)
 	return args.Get(0).([]byte), args.String(1), args.Error(2)
 }
 
-func (m *MockExportService) ExportAllData(userID uint, format domain.ExportFormat) ([]byte, string, error) {
+func (m *MockExportService) ExportAllData(userID uint, format domain.ExportFormat) (data []byte, filename string, err error) {
 	args := m.Called(userID, format)
 	return args.Get(0).([]byte), args.String(1), args.Error(2)
 }
@@ -54,12 +58,13 @@ func TestExportHandler_ExportTransactions(t *testing.T) {
 		expectedData := []byte("transaction,amount\nTest,100.00")
 		expectedFilename := "transactions.csv"
 
-		mockService.On("ExportTransactions", uint(1), domain.ExportFormatCSV, (*time.Time)(nil), (*time.Time)(nil)).Return(expectedData, expectedFilename, nil)
+		mockService.On("ExportTransactions", uint(1), domain.ExportFormatCSV, (*time.Time)(nil), (*time.Time)(nil)).
+			Return(expectedData, expectedFilename, nil)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/transactions", nil)
+		c.Request = httptest.NewRequest("GET", "/export/transactions", http.NoBody)
 
 		handler.ExportTransactions(c)
 
@@ -82,7 +87,7 @@ func TestExportHandler_ExportTransactions(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/transactions?format=json&start_date=2023-01-01&end_date=2023-12-31", nil)
+		c.Request = httptest.NewRequest("GET", "/export/transactions?format=json&start_date=2023-01-01&end_date=2023-12-31", http.NoBody)
 
 		handler.ExportTransactions(c)
 
@@ -98,7 +103,7 @@ func TestExportHandler_ExportTransactions(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/export/transactions", nil)
+		c.Request = httptest.NewRequest("GET", "/export/transactions", http.NoBody)
 
 		handler.ExportTransactions(c)
 
@@ -115,7 +120,7 @@ func TestExportHandler_ExportTransactions(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/transactions?format=invalid", nil)
+		c.Request = httptest.NewRequest("GET", "/export/transactions?format=invalid", http.NoBody)
 
 		handler.ExportTransactions(c)
 
@@ -128,12 +133,13 @@ func TestExportHandler_ExportTransactions(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		handler, mockService := setupExportHandler()
-		mockService.On("ExportTransactions", uint(1), domain.ExportFormatCSV, (*time.Time)(nil), (*time.Time)(nil)).Return([]byte{}, "", errors.New("export failed"))
+		mockService.On("ExportTransactions", uint(1), domain.ExportFormatCSV, (*time.Time)(nil), (*time.Time)(nil)).
+			Return([]byte{}, "", errors.New("export failed"))
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/transactions", nil)
+		c.Request = httptest.NewRequest("GET", "/export/transactions", http.NoBody)
 
 		handler.ExportTransactions(c)
 
@@ -159,7 +165,7 @@ func TestExportHandler_ExportBudgets(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/budgets", nil)
+		c.Request = httptest.NewRequest("GET", "/export/budgets", http.NoBody)
 
 		handler.ExportBudgets(c)
 
@@ -180,7 +186,7 @@ func TestExportHandler_ExportBudgets(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/budgets?format=json", nil)
+		c.Request = httptest.NewRequest("GET", "/export/budgets?format=json", http.NoBody)
 
 		handler.ExportBudgets(c)
 
@@ -196,7 +202,7 @@ func TestExportHandler_ExportBudgets(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/export/budgets", nil)
+		c.Request = httptest.NewRequest("GET", "/export/budgets", http.NoBody)
 
 		handler.ExportBudgets(c)
 
@@ -213,7 +219,7 @@ func TestExportHandler_ExportBudgets(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/budgets?format=xml", nil)
+		c.Request = httptest.NewRequest("GET", "/export/budgets?format=xml", http.NoBody)
 
 		handler.ExportBudgets(c)
 
@@ -231,7 +237,7 @@ func TestExportHandler_ExportBudgets(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/budgets", nil)
+		c.Request = httptest.NewRequest("GET", "/export/budgets", http.NoBody)
 
 		handler.ExportBudgets(c)
 
@@ -257,7 +263,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6&format=json", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6&format=json", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -278,7 +284,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=yearly&year=2023", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=yearly&year=2023", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -294,7 +300,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -311,7 +317,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?year=2023", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?year=2023", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -328,7 +334,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -345,7 +351,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=invalid", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=invalid", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -362,7 +368,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=13", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=13", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -379,7 +385,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -396,7 +402,7 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6&format=xml", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6&format=xml", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -409,12 +415,13 @@ func TestExportHandler_ExportFinancialReport(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		handler, mockService := setupExportHandler()
-		mockService.On("ExportFinancialReport", uint(1), "monthly", 2023, 6, domain.ExportFormatJSON).Return([]byte{}, "", errors.New("export failed"))
+		mockService.On("ExportFinancialReport", uint(1), "monthly", 2023, 6, domain.ExportFormatJSON).
+			Return([]byte{}, "", errors.New("export failed"))
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6", nil)
+		c.Request = httptest.NewRequest("GET", "/export/reports?type=monthly&year=2023&month=6", http.NoBody)
 
 		handler.ExportFinancialReport(c)
 
@@ -440,7 +447,7 @@ func TestExportHandler_ExportAllData(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/all", nil)
+		c.Request = httptest.NewRequest("GET", "/export/all", http.NoBody)
 
 		handler.ExportAllData(c)
 
@@ -461,7 +468,7 @@ func TestExportHandler_ExportAllData(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/all?format=json", nil)
+		c.Request = httptest.NewRequest("GET", "/export/all?format=json", http.NoBody)
 
 		handler.ExportAllData(c)
 
@@ -477,7 +484,7 @@ func TestExportHandler_ExportAllData(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/export/all", nil)
+		c.Request = httptest.NewRequest("GET", "/export/all", http.NoBody)
 
 		handler.ExportAllData(c)
 
@@ -494,7 +501,7 @@ func TestExportHandler_ExportAllData(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/all?format=csv", nil)
+		c.Request = httptest.NewRequest("GET", "/export/all?format=csv", http.NoBody)
 
 		handler.ExportAllData(c)
 
@@ -512,7 +519,7 @@ func TestExportHandler_ExportAllData(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Set("userID", uint(1))
-		c.Request = httptest.NewRequest("GET", "/export/all", nil)
+		c.Request = httptest.NewRequest("GET", "/export/all", http.NoBody)
 
 		handler.ExportAllData(c)
 
@@ -533,7 +540,7 @@ func TestExportHandler_GetExportFormats(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/export/formats", nil)
+		c.Request = httptest.NewRequest("GET", "/export/formats", http.NoBody)
 
 		handler.GetExportFormats(c)
 

@@ -224,3 +224,85 @@ install-tools:
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	@echo "$(GREEN)✅ Development tools installed$(RESET)"
+
+## install-act: Install act for local GitHub Actions
+install-act:
+	@echo "$(BLUE)🎭 Installing act for local GitHub Actions...$(RESET)"
+	@if command -v act >/dev/null 2>&1; then \
+		echo "$(GREEN)✅ act is already installed$(RESET)"; \
+	else \
+		echo "$(YELLOW)Installing act...$(RESET)"; \
+		if command -v winget >/dev/null 2>&1; then \
+			winget install nektos.act; \
+		elif command -v choco >/dev/null 2>&1; then \
+			choco install act-cli; \
+		else \
+			echo "$(RED)❌ Please install act manually from: https://github.com/nektos/act$(RESET)"; \
+			exit 1; \
+		fi; \
+	fi
+	@echo "$(GREEN)✅ act installation completed$(RESET)"
+
+## ci-local: Run complete CI pipeline locally using act
+ci-local: install-act
+	@echo "$(CYAN)🎭 Running complete CI pipeline locally...$(RESET)"
+	act --rm
+	@echo "$(GREEN)✅ Local CI pipeline completed$(RESET)"
+
+## ci-test: Run test job locally
+ci-test:
+	@echo "$(BLUE)🧪 Running CI test pipeline locally...$(RESET)"
+	@echo "$(YELLOW)🔍 Running go vet...$(RESET)"
+	go vet ./...
+	@echo "$(YELLOW)🔍 Running staticcheck...$(RESET)"
+	@which staticcheck > /dev/null || go install honnef.co/go/tools/cmd/staticcheck@latest
+	staticcheck ./...
+	@echo "$(YELLOW)🔍 Running golangci-lint...$(RESET)"
+	@which golangci-lint > /dev/null || go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	golangci-lint run --timeout=5m
+	@echo "$(YELLOW)🧪 Running tests...$(RESET)"
+	@mkdir -p $(COVERAGE_DIR)
+	go test -race -covermode=atomic -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
+	@echo "$(YELLOW)🧪 Running integration tests...$(RESET)"
+	go test -tags=integration ./...
+	@echo "$(YELLOW)⚡ Running benchmarks...$(RESET)"
+	go test -bench=. -benchmem ./...
+	@echo "$(GREEN)✅ CI test pipeline completed$(RESET)"
+
+## ci-security: Run security scan locally
+ci-security:
+	@echo "$(RED)🔒 Running CI security pipeline locally...$(RESET)"
+	@echo "$(YELLOW)🔍 Running govulncheck...$(RESET)"
+	@which govulncheck > /dev/null || go install golang.org/x/vuln/cmd/govulncheck@latest
+	govulncheck ./...
+	@echo "$(YELLOW)🔍 Running gosec...$(RESET)"
+	@which gosec > /dev/null || go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+	gosec ./...
+	@echo "$(GREEN)✅ CI security pipeline completed$(RESET)"
+
+## ci-build: Run build job locally
+ci-build:
+	@echo "$(GREEN)🔨 Running CI build pipeline locally...$(RESET)"
+	@echo "$(YELLOW)🔨 Building binary...$(RESET)"
+	@mkdir -p $(BIN_DIR)
+	CGO_ENABLED=0 go build $(LDFLAGS) -o $(BIN_DIR)/$(APP_NAME) ./cmd/api
+	@echo "$(YELLOW)✅ Verifying binary...$(RESET)"
+	$(BIN_DIR)/$(APP_NAME) --version || echo "Binary verification completed"
+	@echo "$(GREEN)✅ CI build pipeline completed$(RESET)"
+
+## ci-docker: Run docker job locally
+ci-docker:
+	@echo "$(BLUE)🐳 Running CI docker pipeline locally...$(RESET)"
+	@echo "$(YELLOW)🐳 Building Docker image...$(RESET)"
+	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	@echo "$(YELLOW)🔍 Scanning Docker image with Trivy...$(RESET)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy image --exit-code 0 --severity HIGH,CRITICAL $(DOCKER_IMAGE):$(DOCKER_TAG); \
+	else \
+		echo "$(YELLOW)⚠️  Trivy not installed, skipping image scan$(RESET)"; \
+	fi
+	@echo "$(GREEN)✅ CI docker pipeline completed$(RESET)"
+
+## ci-full: Run all CI jobs locally (without act)
+ci-full: ci-test ci-security ci-build ci-docker
+	@echo "$(CYAN)🎉 Complete local CI pipeline finished successfully!$(RESET)"

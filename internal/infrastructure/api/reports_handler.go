@@ -26,30 +26,60 @@ func NewReportsHandler(service ReportsServiceInterface) *ReportsHandler {
 	return &ReportsHandler{Service: service}
 }
 
-// GenerateMonthlyReport generates a monthly financial report
-func (h *ReportsHandler) GenerateMonthlyReport(c *gin.Context) {
+// validateUserID validates user ID parameter
+func (h *ReportsHandler) validateUserID(c *gin.Context) (uint, bool) {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
-		return
+		return 0, false
+	}
+	return uint(userID), true
+}
+
+// validateUserIDAndYear validates common parameters for report generation
+func (h *ReportsHandler) validateUserIDAndYear(c *gin.Context) (userID uint, year int, valid bool) {
+	userID, valid = h.validateUserID(c)
+	if !valid {
+		return 0, 0, false
 	}
 
 	yearStr := c.Param("year")
 	year, err := strconv.Atoi(yearStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid year"})
+		return 0, 0, false
+	}
+
+	return userID, year, true
+}
+
+// validatePeriodParam validates and parses a period parameter with given constraints
+func (h *ReportsHandler) validatePeriodParam(
+	c *gin.Context, paramName string, minVal, maxVal int, errorMsg string,
+) (value int, valid bool) {
+	paramStr := c.Param(paramName)
+	value, err := strconv.Atoi(paramStr)
+	if err != nil || value < minVal || value > maxVal {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
+		return 0, false
+	}
+	return value, true
+}
+
+// GenerateMonthlyReport generates a monthly financial report
+func (h *ReportsHandler) GenerateMonthlyReport(c *gin.Context) {
+	userID, year, valid := h.validateUserIDAndYear(c)
+	if !valid {
 		return
 	}
 
-	monthStr := c.Param("month")
-	month, err := strconv.Atoi(monthStr)
-	if err != nil || month < 1 || month > 12 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid month"})
+	month, valid := h.validatePeriodParam(c, "month", 1, 12, "Invalid month")
+	if !valid {
 		return
 	}
 
-	report, err := h.Service.GenerateMonthlyReport(uint(userID), year, month)
+	report, err := h.Service.GenerateMonthlyReport(userID, year, month)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate monthly report"})
 		return
@@ -60,28 +90,17 @@ func (h *ReportsHandler) GenerateMonthlyReport(c *gin.Context) {
 
 // GenerateQuarterlyReport generates a quarterly financial report
 func (h *ReportsHandler) GenerateQuarterlyReport(c *gin.Context) {
-	userIDStr := c.Param("userId")
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+	userID, year, valid := h.validateUserIDAndYear(c)
+	if !valid {
 		return
 	}
 
-	yearStr := c.Param("year")
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid year"})
+	quarter, valid := h.validatePeriodParam(c, "quarter", 1, 4, "Invalid quarter")
+	if !valid {
 		return
 	}
 
-	quarterStr := c.Param("quarter")
-	quarter, err := strconv.Atoi(quarterStr)
-	if err != nil || quarter < 1 || quarter > 4 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quarter"})
-		return
-	}
-
-	report, err := h.Service.GenerateQuarterlyReport(uint(userID), year, quarter)
+	report, err := h.Service.GenerateQuarterlyReport(userID, year, quarter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate quarterly report"})
 		return
@@ -92,21 +111,12 @@ func (h *ReportsHandler) GenerateQuarterlyReport(c *gin.Context) {
 
 // GenerateYearlyReport generates a yearly financial report
 func (h *ReportsHandler) GenerateYearlyReport(c *gin.Context) {
-	userIDStr := c.Param("userId")
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+	userID, year, valid := h.validateUserIDAndYear(c)
+	if !valid {
 		return
 	}
 
-	yearStr := c.Param("year")
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid year"})
-		return
-	}
-
-	report, err := h.Service.GenerateYearlyReport(uint(userID), year)
+	report, err := h.Service.GenerateYearlyReport(userID, year)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate yearly report"})
 		return
@@ -117,10 +127,8 @@ func (h *ReportsHandler) GenerateYearlyReport(c *gin.Context) {
 
 // GenerateCustomReport generates a custom date range financial report
 func (h *ReportsHandler) GenerateCustomReport(c *gin.Context) {
-	userIDStr := c.Param("userId")
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+	userID, valid := h.validateUserID(c)
+	if !valid {
 		return
 	}
 
@@ -149,7 +157,7 @@ func (h *ReportsHandler) GenerateCustomReport(c *gin.Context) {
 		return
 	}
 
-	report, err := h.Service.GenerateCustomReport(uint(userID), startDate, endDate)
+	report, err := h.Service.GenerateCustomReport(userID, startDate, endDate)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate custom report"})
 		return
@@ -160,10 +168,8 @@ func (h *ReportsHandler) GenerateCustomReport(c *gin.Context) {
 
 // GetReportsList returns a list of generated reports for a user
 func (h *ReportsHandler) GetReportsList(c *gin.Context) {
-	userIDStr := c.Param("userId")
-	_, err := strconv.ParseUint(userIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+	_, valid := h.validateUserID(c)
+	if !valid {
 		return
 	}
 

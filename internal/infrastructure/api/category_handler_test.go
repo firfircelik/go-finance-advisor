@@ -76,7 +76,7 @@ func TestCategoryHandler_InitializeDefaultCategories(t *testing.T) {
 
 		mockService.On("InitializeDefaultCategories").Return(nil)
 
-		req := httptest.NewRequest("POST", "/categories/initialize", nil)
+		req := httptest.NewRequest("POST", "/categories/initialize", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -95,7 +95,7 @@ func TestCategoryHandler_InitializeDefaultCategories(t *testing.T) {
 
 		mockService.On("InitializeDefaultCategories").Return(errors.New("database error"))
 
-		req := httptest.NewRequest("POST", "/categories/initialize", nil)
+		req := httptest.NewRequest("POST", "/categories/initialize", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -137,7 +137,7 @@ func TestCategoryHandler_GetCategories(t *testing.T) {
 
 		mockService.On("GetAllCategories").Return(expectedCategories, nil)
 
-		req := httptest.NewRequest("GET", "/categories", nil)
+		req := httptest.NewRequest("GET", "/categories", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -158,7 +158,7 @@ func TestCategoryHandler_GetCategories(t *testing.T) {
 
 		mockService.On("GetAllCategories").Return([]domain.Category{}, errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/categories", nil)
+		req := httptest.NewRequest("GET", "/categories", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -189,7 +189,7 @@ func TestCategoryHandler_GetCategory(t *testing.T) {
 
 		mockService.On("GetCategoryByID", uint(1)).Return(expectedCategory, nil)
 
-		req := httptest.NewRequest("GET", "/categories/1", nil)
+		req := httptest.NewRequest("GET", "/categories/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -207,7 +207,7 @@ func TestCategoryHandler_GetCategory(t *testing.T) {
 		router := setupGin()
 		router.GET("/categories/:categoryId", handler.GetCategory)
 
-		req := httptest.NewRequest("GET", "/categories/invalid", nil)
+		req := httptest.NewRequest("GET", "/categories/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -225,7 +225,7 @@ func TestCategoryHandler_GetCategory(t *testing.T) {
 
 		mockService.On("GetCategoryByID", uint(999)).Return((*domain.Category)(nil), errors.New("not found"))
 
-		req := httptest.NewRequest("GET", "/categories/999", nil)
+		req := httptest.NewRequest("GET", "/categories/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -463,7 +463,7 @@ func TestCategoryHandler_DeleteCategory(t *testing.T) {
 		mockService.On("GetCategoryByID", uint(1)).Return(customCategory, nil)
 		mockService.On("DeleteCategory", uint(1)).Return(nil)
 
-		req := httptest.NewRequest("DELETE", "/categories/1", nil)
+		req := httptest.NewRequest("DELETE", "/categories/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -489,7 +489,7 @@ func TestCategoryHandler_DeleteCategory(t *testing.T) {
 
 		mockService.On("GetCategoryByID", uint(1)).Return(defaultCategory, nil)
 
-		req := httptest.NewRequest("DELETE", "/categories/1", nil)
+		req := httptest.NewRequest("DELETE", "/categories/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -529,7 +529,7 @@ func TestCategoryHandler_GetCategoryUsage(t *testing.T) {
 
 		mockService.On("GetCategoryUsageStats", uint(0)).Return(expectedStats, nil)
 
-		req := httptest.NewRequest("GET", "/categories/usage", nil)
+		req := httptest.NewRequest("GET", "/categories/usage", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -562,7 +562,7 @@ func TestCategoryHandler_GetCategoryUsage(t *testing.T) {
 
 		mockService.On("GetCategoryUsageStats", uint(1)).Return(expectedStats, nil)
 
-		req := httptest.NewRequest("GET", "/categories/usage?user_id=1", nil)
+		req := httptest.NewRequest("GET", "/categories/usage?user_id=1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -580,7 +580,7 @@ func TestCategoryHandler_GetCategoryUsage(t *testing.T) {
 		router := setupGin()
 		router.GET("/categories/usage", handler.GetCategoryUsage)
 
-		req := httptest.NewRequest("GET", "/categories/usage?user_id=invalid", nil)
+		req := httptest.NewRequest("GET", "/categories/usage?user_id=invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -621,7 +621,7 @@ func TestCategoryHandler_GetIncomeCategories(t *testing.T) {
 
 		mockService.On("GetCategoriesByType", "income").Return(expectedCategories, nil)
 
-		req := httptest.NewRequest("GET", "/categories/income", nil)
+		req := httptest.NewRequest("GET", "/categories/income", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -642,7 +642,7 @@ func TestCategoryHandler_GetIncomeCategories(t *testing.T) {
 
 		mockService.On("GetCategoriesByType", "income").Return([]domain.Category{}, errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/categories/income", nil)
+		req := httptest.NewRequest("GET", "/categories/income", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -684,7 +684,7 @@ func TestCategoryHandler_GetExpenseCategories(t *testing.T) {
 
 		mockService.On("GetCategoriesByType", "expense").Return(expectedCategories, nil)
 
-		req := httptest.NewRequest("GET", "/categories/expense", nil)
+		req := httptest.NewRequest("GET", "/categories/expense", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -705,7 +705,7 @@ func TestCategoryHandler_GetExpenseCategories(t *testing.T) {
 
 		mockService.On("GetCategoriesByType", "expense").Return([]domain.Category{}, errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/categories/expense", nil)
+		req := httptest.NewRequest("GET", "/categories/expense", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)

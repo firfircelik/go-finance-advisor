@@ -19,12 +19,16 @@ type MockAnalyticsService struct {
 	mock.Mock
 }
 
-func (m *MockAnalyticsService) GetFinancialMetrics(userID uint, period string, startDate, endDate time.Time) (*domain.FinancialMetrics, error) {
+func (m *MockAnalyticsService) GetFinancialMetrics(
+	userID uint, period string, startDate, endDate time.Time,
+) (*domain.FinancialMetrics, error) {
 	args := m.Called(userID, period, startDate, endDate)
 	return args.Get(0).(*domain.FinancialMetrics), args.Error(1)
 }
 
-func (m *MockAnalyticsService) GetIncomeExpenseAnalysis(userID uint, period string, startDate, endDate time.Time) (*domain.IncomeExpenseAnalysis, error) {
+func (m *MockAnalyticsService) GetIncomeExpenseAnalysis(
+	userID uint, period string, startDate, endDate time.Time,
+) (*domain.IncomeExpenseAnalysis, error) {
 	args := m.Called(userID, period, startDate, endDate)
 	return args.Get(0).(*domain.IncomeExpenseAnalysis), args.Error(1)
 }
@@ -66,9 +70,11 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 			EndDate:   time.Now(),
 		}
 
-		mockService.On("GetFinancialMetrics", uint(1), "monthly", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(metrics, nil)
+		mockService.On("GetFinancialMetrics", uint(1), "monthly",
+			mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
+			Return(metrics, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/metrics/1", nil)
+		req := httptest.NewRequest("GET", "/analytics/metrics/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -105,7 +111,7 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		endDate := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
 		mockService.On("GetFinancialMetrics", uint(1), "weekly", startDate, endDate).Return(metrics, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/metrics/1?period=weekly&start_date=2024-01-01&end_date=2024-01-31", nil)
+		req := httptest.NewRequest("GET", "/analytics/metrics/1?period=weekly&start_date=2024-01-01&end_date=2024-01-31", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -122,7 +128,7 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/metrics/:userId", handler.GetFinancialMetrics)
 
-		req := httptest.NewRequest("GET", "/analytics/metrics/invalid", nil)
+		req := httptest.NewRequest("GET", "/analytics/metrics/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -138,7 +144,7 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/metrics/:userId", handler.GetFinancialMetrics)
 
-		req := httptest.NewRequest("GET", "/analytics/metrics/1?start_date=invalid-date", nil)
+		req := httptest.NewRequest("GET", "/analytics/metrics/1?start_date=invalid-date", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -154,7 +160,7 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/metrics/:userId", handler.GetFinancialMetrics)
 
-		req := httptest.NewRequest("GET", "/analytics/metrics/1?end_date=invalid-date", nil)
+		req := httptest.NewRequest("GET", "/analytics/metrics/1?end_date=invalid-date", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -170,9 +176,11 @@ func TestAnalyticsHandler_GetFinancialMetrics(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/metrics/:userId", handler.GetFinancialMetrics)
 
-		mockService.On("GetFinancialMetrics", uint(1), "monthly", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return((*domain.FinancialMetrics)(nil), errors.New("service error"))
+		mockService.On("GetFinancialMetrics", uint(1), "monthly",
+			mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
+			Return((*domain.FinancialMetrics)(nil), errors.New("service error"))
 
-		req := httptest.NewRequest("GET", "/analytics/metrics/1", nil)
+		req := httptest.NewRequest("GET", "/analytics/metrics/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -220,9 +228,11 @@ func TestAnalyticsHandler_GetIncomeExpenseAnalysis(t *testing.T) {
 			},
 		}
 
-		mockService.On("GetIncomeExpenseAnalysis", uint(1), "monthly", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(analysis, nil)
+		mockService.On("GetIncomeExpenseAnalysis", uint(1), "monthly",
+			mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
+			Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/income-expense/1", nil)
+		req := httptest.NewRequest("GET", "/analytics/income-expense/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -275,7 +285,7 @@ func TestAnalyticsHandler_GetIncomeExpenseAnalysis(t *testing.T) {
 		endDate := time.Date(2024, 1, 7, 0, 0, 0, 0, time.UTC)
 		mockService.On("GetIncomeExpenseAnalysis", uint(1), "weekly", startDate, endDate).Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/income-expense/1?period=weekly&start_date=2024-01-01&end_date=2024-01-07", nil)
+		req := httptest.NewRequest("GET", "/analytics/income-expense/1?period=weekly&start_date=2024-01-01&end_date=2024-01-07", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -292,7 +302,7 @@ func TestAnalyticsHandler_GetIncomeExpenseAnalysis(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/income-expense/:userId", handler.GetIncomeExpenseAnalysis)
 
-		req := httptest.NewRequest("GET", "/analytics/income-expense/invalid", nil)
+		req := httptest.NewRequest("GET", "/analytics/income-expense/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -308,9 +318,11 @@ func TestAnalyticsHandler_GetIncomeExpenseAnalysis(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/income-expense/:userId", handler.GetIncomeExpenseAnalysis)
 
-		mockService.On("GetIncomeExpenseAnalysis", uint(1), "monthly", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return((*domain.IncomeExpenseAnalysis)(nil), errors.New("service error"))
+		mockService.On("GetIncomeExpenseAnalysis", uint(1), "monthly",
+			mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
+			Return((*domain.IncomeExpenseAnalysis)(nil), errors.New("service error"))
 
-		req := httptest.NewRequest("GET", "/analytics/income-expense/1", nil)
+		req := httptest.NewRequest("GET", "/analytics/income-expense/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -339,9 +351,11 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 			Trend:             "stable",
 		}
 
-		mockService.On("GetCategoryAnalysis", uint(1), uint(5), mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(analysis, nil)
+		mockService.On("GetCategoryAnalysis", uint(1), uint(5),
+			mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
+			Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/category/1/5", nil)
+		req := httptest.NewRequest("GET", "/analytics/category/1/5", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -375,7 +389,7 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		endDate := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
 		mockService.On("GetCategoryAnalysis", uint(1), uint(3), startDate, endDate).Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/category/1/3?start_date=2024-01-01&end_date=2024-01-15", nil)
+		req := httptest.NewRequest("GET", "/analytics/category/1/3?start_date=2024-01-01&end_date=2024-01-15", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -392,7 +406,7 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/category/:userId/:categoryId", handler.GetCategoryAnalysis)
 
-		req := httptest.NewRequest("GET", "/analytics/category/invalid/5", nil)
+		req := httptest.NewRequest("GET", "/analytics/category/invalid/5", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -408,7 +422,7 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/category/:userId/:categoryId", handler.GetCategoryAnalysis)
 
-		req := httptest.NewRequest("GET", "/analytics/category/1/invalid", nil)
+		req := httptest.NewRequest("GET", "/analytics/category/1/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -424,9 +438,11 @@ func TestAnalyticsHandler_GetCategoryAnalysis(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/category/:userId/:categoryId", handler.GetCategoryAnalysis)
 
-		mockService.On("GetCategoryAnalysis", uint(1), uint(5), mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return((*domain.CategoryMetrics)(nil), errors.New("service error"))
+		mockService.On("GetCategoryAnalysis", uint(1), uint(5),
+			mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
+			Return((*domain.CategoryMetrics)(nil), errors.New("service error"))
 
-		req := httptest.NewRequest("GET", "/analytics/category/1/5", nil)
+		req := httptest.NewRequest("GET", "/analytics/category/1/5", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -460,14 +476,21 @@ func TestAnalyticsHandler_GetDashboardSummary(t *testing.T) {
 				{CategoryName: "Transport", TotalAmount: 300.0},
 			},
 			RecentTransactions: []domain.Transaction{{ID: 1, Amount: 150.0, Description: "Grocery shopping"}},
-			BudgetAlerts:       []domain.BudgetAlert{{BudgetID: 1, CategoryName: "Rent", BudgetAmount: 1200.0, SpentAmount: 1000.0, PercentageUsed: 83.3, AlertLevel: "warning", DaysRemaining: 5}},
-			FinancialGoals:     []domain.FinancialGoal{},
-			QuickStats:         domain.QuickStats{TotalTransactions: 25, AverageTransaction: 140.0, LargestExpense: 500.0, MostUsedCategory: "Food", DaysUntilNextBudget: 15, CashFlowTrend: "positive"},
+			BudgetAlerts: []domain.BudgetAlert{{
+				BudgetID: 1, CategoryName: "Rent", BudgetAmount: 1200.0,
+				SpentAmount: 1000.0, PercentageUsed: 83.3,
+				AlertLevel: "warning", DaysRemaining: 5,
+			}},
+			FinancialGoals: []domain.FinancialGoal{},
+			QuickStats: domain.QuickStats{
+				TotalTransactions: 25, AverageTransaction: 140.0, LargestExpense: 500.0,
+				MostUsedCategory: "Food", DaysUntilNextBudget: 15, CashFlowTrend: "positive",
+			},
 		}
 
 		mockService.On("GetDashboardSummary", uint(1), "month").Return(dashboard, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/dashboard/1", nil)
+		req := httptest.NewRequest("GET", "/analytics/dashboard/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -504,12 +527,15 @@ func TestAnalyticsHandler_GetDashboardSummary(t *testing.T) {
 			RecentTransactions: []domain.Transaction{{ID: 2, Amount: 50.0, Description: "Coffee shop"}},
 			BudgetAlerts:       []domain.BudgetAlert{},
 			FinancialGoals:     []domain.FinancialGoal{},
-			QuickStats:         domain.QuickStats{TotalTransactions: 10, AverageTransaction: 80.0, LargestExpense: 200.0, MostUsedCategory: "Food", DaysUntilNextBudget: 20, CashFlowTrend: "stable"},
+			QuickStats: domain.QuickStats{
+				TotalTransactions: 10, AverageTransaction: 80.0, LargestExpense: 200.0,
+				MostUsedCategory: "Food", DaysUntilNextBudget: 20, CashFlowTrend: "stable",
+			},
 		}
 
 		mockService.On("GetDashboardSummary", uint(1), "week").Return(dashboard, nil)
 
-		req := httptest.NewRequest("GET", "/analytics/dashboard/1?period=week", nil)
+		req := httptest.NewRequest("GET", "/analytics/dashboard/1?period=week", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -526,7 +552,7 @@ func TestAnalyticsHandler_GetDashboardSummary(t *testing.T) {
 		router := setupGin()
 		router.GET("/analytics/dashboard/:userId", handler.GetDashboardSummary)
 
-		req := httptest.NewRequest("GET", "/analytics/dashboard/invalid", nil)
+		req := httptest.NewRequest("GET", "/analytics/dashboard/invalid", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -544,7 +570,7 @@ func TestAnalyticsHandler_GetDashboardSummary(t *testing.T) {
 
 		mockService.On("GetDashboardSummary", uint(1), "month").Return((*domain.DashboardSummary)(nil), errors.New("service error"))
 
-		req := httptest.NewRequest("GET", "/analytics/dashboard/1", nil)
+		req := httptest.NewRequest("GET", "/analytics/dashboard/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)

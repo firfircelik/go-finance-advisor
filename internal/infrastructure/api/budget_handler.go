@@ -49,8 +49,8 @@ func (h *BudgetHandler) CreateBudget(c *gin.Context) {
 	}
 
 	var req CreateBudgetRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})
 		return
 	}
 
@@ -169,8 +169,8 @@ func (h *BudgetHandler) UpdateBudget(c *gin.Context) {
 	}
 
 	var req UpdateBudgetRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})
 		return
 	}
 
@@ -195,16 +195,16 @@ func (h *BudgetHandler) UpdateBudget(c *gin.Context) {
 		budget.Period = *req.Period
 	}
 	if req.StartDate != nil {
-		startDate, err := time.Parse("2006-01-02", *req.StartDate)
-		if err != nil {
+		startDate, parseErr := time.Parse("2006-01-02", *req.StartDate)
+		if parseErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start date format. Use YYYY-MM-DD"})
 			return
 		}
 		budget.StartDate = startDate
 	}
 	if req.EndDate != nil {
-		endDate, err := time.Parse("2006-01-02", *req.EndDate)
-		if err != nil {
+		endDate, parseErr := time.Parse("2006-01-02", *req.EndDate)
+		if parseErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end date format. Use YYYY-MM-DD"})
 			return
 		}

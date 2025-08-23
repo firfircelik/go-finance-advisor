@@ -240,7 +240,7 @@ func TestBudgetHandler_GetBudgets(t *testing.T) {
 
 		mockService.On("GetBudgetsByUser", uint(1)).Return(expectedBudgets, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/budgets", nil)
+		req := httptest.NewRequest("GET", "/users/1/budgets", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -259,7 +259,7 @@ func TestBudgetHandler_GetBudgets(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/budgets", handler.GetBudgets)
 
-		req := httptest.NewRequest("GET", "/users/invalid/budgets", nil)
+		req := httptest.NewRequest("GET", "/users/invalid/budgets", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -277,7 +277,7 @@ func TestBudgetHandler_GetBudgets(t *testing.T) {
 
 		mockService.On("GetBudgetsByUser", uint(1)).Return([]domain.Budget{}, errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/users/1/budgets", nil)
+		req := httptest.NewRequest("GET", "/users/1/budgets", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -307,7 +307,7 @@ func TestBudgetHandler_GetBudget(t *testing.T) {
 
 		mockService.On("GetBudgetByID", uint(1)).Return(expectedBudget, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/budgets/1", nil)
+		req := httptest.NewRequest("GET", "/users/1/budgets/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -336,7 +336,7 @@ func TestBudgetHandler_GetBudget(t *testing.T) {
 
 		mockService.On("GetBudgetByID", uint(1)).Return(expectedBudget, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/budgets/1", nil)
+		req := httptest.NewRequest("GET", "/users/1/budgets/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -355,7 +355,7 @@ func TestBudgetHandler_GetBudget(t *testing.T) {
 
 		mockService.On("GetBudgetByID", uint(999)).Return((*domain.Budget)(nil), errors.New("not found"))
 
-		req := httptest.NewRequest("GET", "/users/1/budgets/999", nil)
+		req := httptest.NewRequest("GET", "/users/1/budgets/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -472,7 +472,7 @@ func TestBudgetHandler_DeleteBudget(t *testing.T) {
 		mockService.On("GetBudgetByID", uint(1)).Return(existingBudget, nil)
 		mockService.On("DeleteBudget", uint(1)).Return(nil)
 
-		req := httptest.NewRequest("DELETE", "/users/1/budgets/1", nil)
+		req := httptest.NewRequest("DELETE", "/users/1/budgets/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -500,7 +500,7 @@ func TestBudgetHandler_DeleteBudget(t *testing.T) {
 
 		mockService.On("GetBudgetByID", uint(1)).Return(existingBudget, nil)
 
-		req := httptest.NewRequest("DELETE", "/users/1/budgets/1", nil)
+		req := httptest.NewRequest("DELETE", "/users/1/budgets/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -529,7 +529,7 @@ func TestBudgetHandler_GetBudgetSummary(t *testing.T) {
 
 		mockService.On("GetBudgetSummary", uint(1)).Return(expectedSummary, nil)
 
-		req := httptest.NewRequest("GET", "/users/1/budgets/summary", nil)
+		req := httptest.NewRequest("GET", "/users/1/budgets/summary", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -548,7 +548,7 @@ func TestBudgetHandler_GetBudgetSummary(t *testing.T) {
 		router := setupGin()
 		router.GET("/users/:userId/budgets/summary", handler.GetBudgetSummary)
 
-		req := httptest.NewRequest("GET", "/users/invalid/budgets/summary", nil)
+		req := httptest.NewRequest("GET", "/users/invalid/budgets/summary", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -566,7 +566,7 @@ func TestBudgetHandler_GetBudgetSummary(t *testing.T) {
 
 		mockService.On("GetBudgetSummary", uint(1)).Return((*domain.BudgetSummary)(nil), errors.New("database error"))
 
-		req := httptest.NewRequest("GET", "/users/1/budgets/summary", nil)
+		req := httptest.NewRequest("GET", "/users/1/budgets/summary", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)

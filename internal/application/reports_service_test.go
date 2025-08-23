@@ -27,7 +27,7 @@ func setupReportsTestDB() *gorm.DB {
 	return db
 }
 
-func createReportsTestData(db *gorm.DB) (uint, uint, uint) {
+func createReportsTestData(db *gorm.DB) (userID, categoryID1, categoryID2 uint) {
 	// Create test user
 	user := domain.User{
 		FirstName: "John",
@@ -88,8 +88,8 @@ func createReportsTestData(db *gorm.DB) (uint, uint, uint) {
 		},
 	}
 
-	for _, tx := range transactions {
-		db.Create(&tx)
+	for i := range transactions {
+		db.Create(&transactions[i])
 	}
 
 	// Create test budget

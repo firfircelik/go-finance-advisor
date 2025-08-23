@@ -21,7 +21,7 @@ func setupExportTestDB() *gorm.DB {
 	return db
 }
 
-func createExportTestData(db *gorm.DB) (uint, uint) {
+func createExportTestData(db *gorm.DB) (userID uint) {
 	// Create test user
 	user := domain.User{
 		FirstName: "Test",
@@ -70,7 +70,8 @@ func createExportTestData(db *gorm.DB) (uint, uint) {
 			Date:        time.Date(2024, 2, 10, 0, 0, 0, 0, time.UTC),
 		},
 	}
-	for _, tx := range transactions {
+	for i := range transactions {
+		tx := &transactions[i]
 		db.Create(&tx)
 	}
 
@@ -95,17 +96,18 @@ func createExportTestData(db *gorm.DB) (uint, uint) {
 			IsActive:   false,
 		},
 	}
-	for _, budget := range budgets {
+	for i := range budgets {
+		budget := &budgets[i]
 		db.Create(&budget)
 	}
 
-	return user.ID, foodCategory.ID
+	return user.ID
 }
 
 func TestExportService_ExportTransactions(t *testing.T) {
 	db := setupExportTestDB()
 	service := NewExportService(db)
-	userID, _ := createExportTestData(db)
+	userID := createExportTestData(db)
 
 	t.Run("export transactions as CSV", func(t *testing.T) {
 		data, filename, err := service.ExportTransactions(userID, domain.ExportFormatCSV, nil, nil)
@@ -184,7 +186,7 @@ func TestExportService_ExportTransactions(t *testing.T) {
 func TestExportService_ExportBudgets(t *testing.T) {
 	db := setupExportTestDB()
 	service := NewExportService(db)
-	userID, _ := createExportTestData(db)
+	userID := createExportTestData(db)
 
 	t.Run("export budgets as CSV", func(t *testing.T) {
 		data, filename, err := service.ExportBudgets(userID, domain.ExportFormatCSV)
@@ -232,7 +234,7 @@ func TestExportService_ExportBudgets(t *testing.T) {
 func TestExportService_ExportAllData(t *testing.T) {
 	db := setupExportTestDB()
 	service := NewExportService(db)
-	userID, _ := createExportTestData(db)
+	userID := createExportTestData(db)
 
 	t.Run("export all data as JSON", func(t *testing.T) {
 		data, filename, err := service.ExportAllData(userID, domain.ExportFormatJSON)
@@ -263,7 +265,7 @@ func TestExportService_ExportAllData(t *testing.T) {
 func TestExportService_ExportFinancialReport(t *testing.T) {
 	db := setupExportTestDB()
 	service := NewExportService(db)
-	userID, _ := createExportTestData(db)
+	userID := createExportTestData(db)
 
 	// Create ReportsService to generate actual reports
 	reportsService := NewReportsService(db)
@@ -343,7 +345,7 @@ func TestExportService_ExportFinancialReport(t *testing.T) {
 func TestExportService_Integration(t *testing.T) {
 	db := setupExportTestDB()
 	service := NewExportService(db)
-	userID, _ := createExportTestData(db)
+	userID := createExportTestData(db)
 
 	t.Run("export data maintains referential integrity", func(t *testing.T) {
 		// Export transactions

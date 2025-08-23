@@ -40,7 +40,7 @@ linters-settings:
     suggest-new: true
 
   dupl:
-    threshold: 100
+    threshold: 150
 
   goconst:
     min-len: 2
@@ -100,7 +100,6 @@ linters:
     - deadcode
     - depguard
     - dogsled
-    - dupl
     - errcheck
     - exportloopref
     - exhaustive

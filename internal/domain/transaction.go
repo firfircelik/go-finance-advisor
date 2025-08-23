@@ -1,3 +1,5 @@
+// Package domain contains the core business entities and domain models
+// for the Go Finance Advisor application.
 package domain
 
 import "time"

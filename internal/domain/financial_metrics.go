@@ -97,51 +97,84 @@ type WeeklyTrend struct {
 
 // CalculateFinancialHealth calculates overall financial health score
 func (fm *FinancialMetrics) CalculateFinancialHealth() {
-	// Savings Rate Score (0-40 points)
-	savingsScore := 0
-	if fm.SavingsRate >= 0.20 { // 20% or more
-		savingsScore = 40
-	} else if fm.SavingsRate >= 0.15 {
-		savingsScore = 30
-	} else if fm.SavingsRate >= 0.10 {
-		savingsScore = 20
-	} else if fm.SavingsRate >= 0.05 {
-		savingsScore = 10
-	}
-
-	// Expense Ratio Score (0-30 points)
-	expenseScore := 0
-	if fm.ExpenseRatio <= 0.50 { // 50% or less of income
-		expenseScore = 30
-	} else if fm.ExpenseRatio <= 0.70 {
-		expenseScore = 20
-	} else if fm.ExpenseRatio <= 0.85 {
-		expenseScore = 10
-	}
-
-	// Budget Performance Score (0-30 points)
-	budgetScore := 0
-	if fm.BudgetPerformance.VariancePercentage >= -10 && fm.BudgetPerformance.VariancePercentage <= 5 {
-		budgetScore = 30
-	} else if fm.BudgetPerformance.VariancePercentage >= -20 && fm.BudgetPerformance.VariancePercentage <= 10 {
-		budgetScore = 20
-	} else if fm.BudgetPerformance.VariancePercentage >= -30 && fm.BudgetPerformance.VariancePercentage <= 15 {
-		budgetScore = 10
-	}
-
+	savingsScore := fm.calculateSavingsScore()
+	expenseScore := fm.calculateExpenseScore()
+	budgetScore := fm.calculateBudgetScore()
 	overallScore := savingsScore + expenseScore + budgetScore
+	healthStatus := fm.determineHealthStatus(overallScore)
+	recommendations := fm.generateRecommendations()
 
-	// Determine health status
-	healthStatus := "poor"
-	if overallScore >= 80 {
-		healthStatus = "excellent"
-	} else if overallScore >= 60 {
-		healthStatus = "good"
-	} else if overallScore >= 40 {
-		healthStatus = "fair"
+	fm.FinancialHealth = FinancialHealthScore{
+		OverallScore:    overallScore,
+		SavingsScore:    savingsScore,
+		SpendingScore:   expenseScore,
+		BudgetScore:     budgetScore,
+		HealthStatus:    healthStatus,
+		Recommendations: recommendations,
 	}
+}
 
-	// Generate recommendations
+// calculateSavingsScore calculates savings rate score (0-40 points)
+func (fm *FinancialMetrics) calculateSavingsScore() int {
+	switch {
+	case fm.SavingsRate >= 0.20:
+		return 40
+	case fm.SavingsRate >= 0.15:
+		return 30
+	case fm.SavingsRate >= 0.10:
+		return 20
+	case fm.SavingsRate >= 0.05:
+		return 10
+	default:
+		return 0
+	}
+}
+
+// calculateExpenseScore calculates expense ratio score (0-30 points)
+func (fm *FinancialMetrics) calculateExpenseScore() int {
+	switch {
+	case fm.ExpenseRatio <= 0.50:
+		return 30
+	case fm.ExpenseRatio <= 0.70:
+		return 20
+	case fm.ExpenseRatio <= 0.85:
+		return 10
+	default:
+		return 0
+	}
+}
+
+// calculateBudgetScore calculates budget performance score (0-30 points)
+func (fm *FinancialMetrics) calculateBudgetScore() int {
+	variance := fm.BudgetPerformance.VariancePercentage
+	switch {
+	case variance >= -10 && variance <= 5:
+		return 30
+	case variance >= -20 && variance <= 10:
+		return 20
+	case variance >= -30 && variance <= 15:
+		return 10
+	default:
+		return 0
+	}
+}
+
+// determineHealthStatus determines health status based on overall score
+func (fm *FinancialMetrics) determineHealthStatus(overallScore int) string {
+	switch {
+	case overallScore >= 80:
+		return "excellent"
+	case overallScore >= 60:
+		return "good"
+	case overallScore >= 40:
+		return "fair"
+	default:
+		return "poor"
+	}
+}
+
+// generateRecommendations generates financial recommendations
+func (fm *FinancialMetrics) generateRecommendations() []string {
 	recommendations := []string{}
 	if fm.SavingsRate < 0.10 {
 		recommendations = append(recommendations, "Consider increasing your savings rate to at least 10% of income")
@@ -152,13 +185,5 @@ func (fm *FinancialMetrics) CalculateFinancialHealth() {
 	if fm.BudgetPerformance.CategoriesOverBudget > fm.BudgetPerformance.CategoriesUnderBudget {
 		recommendations = append(recommendations, "Review and adjust budgets for categories where you're overspending")
 	}
-
-	fm.FinancialHealth = FinancialHealthScore{
-		OverallScore:    overallScore,
-		SavingsScore:    savingsScore,
-		SpendingScore:   expenseScore,
-		BudgetScore:     budgetScore,
-		HealthStatus:    healthStatus,
-		Recommendations: recommendations,
-	}
+	return recommendations
 }

@@ -13,7 +13,7 @@ import (
 
 // AdvisorServiceInterface defines the contract for advisor service operations
 type AdvisorServiceInterface interface {
-	GenerateAdvice(user domain.User) (*application.InvestmentAdvice, error)
+	GenerateAdvice(user *domain.User) (*application.InvestmentAdvice, error)
 }
 
 // MarketServiceInterface defines the contract for market service operations
@@ -47,14 +47,18 @@ func NewAdvisorHandler(advisor AdvisorServiceInterface, users UserServiceInterfa
 // GetAdvice provides basic investment advice (legacy endpoint)
 func (h *AdvisorHandler) GetAdvice(c *gin.Context) {
 	userIDStr := c.Param("userId")
-	uid, _ := strconv.Atoi(userIDStr)
+	uid, err := strconv.Atoi(userIDStr)
+	if err != nil || uid < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
 
 	user, err := h.Users.GetByID(uint(uid))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
-	advice, err := h.Advisor.GenerateAdvice(user)
+	advice, err := h.Advisor.GenerateAdvice(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -65,7 +69,11 @@ func (h *AdvisorHandler) GetAdvice(c *gin.Context) {
 // GetRealTimeAdvice provides personalized investment advice with real-time market data
 func (h *AdvisorHandler) GetRealTimeAdvice(c *gin.Context) {
 	userIDStr := c.Param("userId")
-	uid, _ := strconv.Atoi(userIDStr)
+	uid, err := strconv.Atoi(userIDStr)
+	if err != nil || uid < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
 
 	user, err := h.Users.GetByID(uint(uid))
 	if err != nil {
@@ -148,7 +156,11 @@ func (h *AdvisorHandler) GetMarketSummary(c *gin.Context) {
 // GetPortfolioRecommendations provides AI-powered portfolio recommendations based on risk profile
 func (h *AdvisorHandler) GetPortfolioRecommendations(c *gin.Context) {
 	userIDStr := c.Param("userId")
-	uid, _ := strconv.Atoi(userIDStr)
+	uid, err := strconv.Atoi(userIDStr)
+	if err != nil || uid < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
 
 	user, err := h.Users.GetByID(uint(uid))
 	if err != nil {
@@ -189,7 +201,11 @@ func (h *AdvisorHandler) GetPortfolioRecommendations(c *gin.Context) {
 // GetAIRiskAssessment provides comprehensive AI-driven risk analysis for a user
 func (h *AdvisorHandler) GetAIRiskAssessment(c *gin.Context) {
 	userIDStr := c.Param("userId")
-	uid, _ := strconv.Atoi(userIDStr)
+	uid, err := strconv.Atoi(userIDStr)
+	if err != nil || uid < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
 
 	user, err := h.Users.GetByID(uint(uid))
 	if err != nil {
@@ -258,7 +274,11 @@ func (h *AdvisorHandler) GetAIMarketPrediction(c *gin.Context) {
 // GetAIPortfolioOptimization provides AI-optimized portfolio suggestions
 func (h *AdvisorHandler) GetAIPortfolioOptimization(c *gin.Context) {
 	userIDStr := c.Param("userId")
-	uid, _ := strconv.Atoi(userIDStr)
+	uid, err := strconv.Atoi(userIDStr)
+	if err != nil || uid < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
 
 	user, err := h.Users.GetByID(uint(uid))
 	if err != nil {

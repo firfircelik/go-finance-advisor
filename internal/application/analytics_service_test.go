@@ -29,7 +29,7 @@ func setupAnalyticsTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func createAnalyticsTestData(t *testing.T, db *gorm.DB) (uint, uint, uint) {
+func createAnalyticsTestData(t *testing.T, db *gorm.DB) (userID, incomeCategoryID, expenseCategoryID uint) {
 	// Create test user
 	user := &domain.User{
 		Email:     "analytics@test.com",

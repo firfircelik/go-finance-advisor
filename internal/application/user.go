@@ -1,7 +1,10 @@
+// Package application contains the business logic and use cases
+// for the Go Finance Advisor application.
 package application
 
 import (
 	"errors"
+
 	"go-finance-advisor/internal/domain"
 
 	"golang.org/x/crypto/bcrypt"

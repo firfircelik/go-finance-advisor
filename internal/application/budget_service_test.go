@@ -25,7 +25,7 @@ func setupBudgetTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func createBudgetTestData(t *testing.T, db *gorm.DB) (uint, uint) {
+func createBudgetTestData(t *testing.T, db *gorm.DB) (userID, budgetID uint) {
 	// Create test user
 	user := &domain.User{
 		Email:     "test@example.com",

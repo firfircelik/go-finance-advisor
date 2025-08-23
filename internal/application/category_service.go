@@ -28,14 +28,15 @@ func NewCategoryService(db *gorm.DB) *CategoryService {
 func (s *CategoryService) InitializeDefaultCategories() error {
 	defaultCategories := domain.GetDefaultCategories()
 
-	for _, category := range defaultCategories {
+	for i := range defaultCategories {
+		category := &defaultCategories[i]
 		var existingCategory domain.Category
 		err := s.DB.Where("name = ? AND type = ?", category.Name, category.Type).First(&existingCategory).Error
 
 		if err == gorm.ErrRecordNotFound {
 			// Category doesn't exist, create it
-			if err := s.DB.Create(&category).Error; err != nil {
-				return err
+			if createErr := s.DB.Create(category).Error; createErr != nil {
+				return createErr
 			}
 		} else if err != nil {
 			return err

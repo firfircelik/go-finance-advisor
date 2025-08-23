@@ -25,7 +25,10 @@ func (s *TransactionService) List(userID uint) ([]domain.Transaction, error) {
 }
 
 // ListWithFilters returns transactions with filtering options
-func (s *TransactionService) ListWithFilters(userID uint, transactionType *string, categoryID *uint, startDate *time.Time, endDate *time.Time, limit int, offset int) ([]domain.Transaction, error) {
+func (s *TransactionService) ListWithFilters(
+	userID uint, transactionType *string, categoryID *uint,
+	startDate, endDate *time.Time, limit, offset int,
+) ([]domain.Transaction, error) {
 	var transactions []domain.Transaction
 	query := s.DB.Preload("Category").Where("user_id = ?", userID)
 
@@ -72,42 +75,71 @@ func (s *TransactionService) Delete(id uint) error {
 }
 
 // GetTransactionsByDateRange returns transactions within a date range
-func (s *TransactionService) GetTransactionsByDateRange(userID uint, startDate, endDate time.Time) ([]domain.Transaction, error) {
+func (s *TransactionService) GetTransactionsByDateRange(
+	userID uint, startDate, endDate time.Time,
+) ([]domain.Transaction, error) {
 	var transactions []domain.Transaction
-	err := s.DB.Preload("Category").Where("user_id = ? AND date >= ? AND date <= ?", userID, startDate, endDate).Order("date DESC").Find(&transactions).Error
+	err := s.DB.Preload("Category").
+		Where("user_id = ? AND date >= ? AND date <= ?", userID, startDate, endDate).
+		Order("date DESC").Find(&transactions).Error
 	return transactions, err
 }
 
 // GetTransactionsByCategory returns transactions for a specific category
-func (s *TransactionService) GetTransactionsByCategory(userID uint, categoryID uint, startDate, endDate time.Time) ([]domain.Transaction, error) {
+func (s *TransactionService) GetTransactionsByCategory(
+	userID, categoryID uint, startDate, endDate time.Time,
+) ([]domain.Transaction, error) {
 	var transactions []domain.Transaction
-	err := s.DB.Preload("Category").Where("user_id = ? AND category_id = ? AND date >= ? AND date <= ?", userID, categoryID, startDate, endDate).Order("date DESC").Find(&transactions).Error
+	err := s.DB.Preload("Category").
+		Where("user_id = ? AND category_id = ? AND date >= ? AND date <= ?",
+			userID, categoryID, startDate, endDate).
+		Order("date DESC").Find(&transactions).Error
 	return transactions, err
 }
 
 // GetTransactionsByType returns transactions by type (income/expense)
-func (s *TransactionService) GetTransactionsByType(userID uint, transactionType string, startDate, endDate time.Time) ([]domain.Transaction, error) {
+func (s *TransactionService) GetTransactionsByType(
+	userID uint, transactionType string, startDate, endDate time.Time,
+) ([]domain.Transaction, error) {
 	var transactions []domain.Transaction
-	err := s.DB.Preload("Category").Where("user_id = ? AND type = ? AND date >= ? AND date <= ?", userID, transactionType, startDate, endDate).Order("date DESC").Find(&transactions).Error
+	err := s.DB.Preload("Category").
+		Where("user_id = ? AND type = ? AND date >= ? AND date <= ?",
+			userID, transactionType, startDate, endDate).
+		Order("date DESC").
+		Find(&transactions).Error
 	return transactions, err
 }
 
 // GetTotalByType returns the total amount for a transaction type within a date range
-func (s *TransactionService) GetTotalByType(userID uint, transactionType string, startDate, endDate time.Time) (float64, error) {
+func (s *TransactionService) GetTotalByType(
+	userID uint, transactionType string, startDate, endDate time.Time,
+) (float64, error) {
 	var total float64
-	err := s.DB.Model(&domain.Transaction{}).Where("user_id = ? AND type = ? AND date >= ? AND date <= ?", userID, transactionType, startDate, endDate).Select("COALESCE(SUM(amount), 0)").Scan(&total).Error
+	err := s.DB.Model(&domain.Transaction{}).
+		Where("user_id = ? AND type = ? AND date >= ? AND date <= ?",
+			userID, transactionType, startDate, endDate).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total).Error
 	return total, err
 }
 
 // GetTotalByCategory returns the total amount for a category within a date range
-func (s *TransactionService) GetTotalByCategory(userID uint, categoryID uint, startDate, endDate time.Time) (float64, error) {
+func (s *TransactionService) GetTotalByCategory(
+	userID, categoryID uint, startDate, endDate time.Time,
+) (float64, error) {
 	var total float64
-	err := s.DB.Model(&domain.Transaction{}).Where("user_id = ? AND category_id = ? AND date >= ? AND date <= ?", userID, categoryID, startDate, endDate).Select("COALESCE(SUM(amount), 0)").Scan(&total).Error
+	err := s.DB.Model(&domain.Transaction{}).
+		Where("user_id = ? AND category_id = ? AND date >= ? AND date <= ?",
+			userID, categoryID, startDate, endDate).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&total).Error
 	return total, err
 }
 
 // GetCategoryTotals returns total amounts grouped by category
-func (s *TransactionService) GetCategoryTotals(userID uint, transactionType string, startDate, endDate time.Time) (map[uint]float64, error) {
+func (s *TransactionService) GetCategoryTotals(
+	userID uint, transactionType string, startDate, endDate time.Time,
+) (map[uint]float64, error) {
 	type CategoryTotal struct {
 		CategoryID uint
 		Total      float64
@@ -133,7 +165,9 @@ func (s *TransactionService) GetCategoryTotals(userID uint, transactionType stri
 }
 
 // GetMonthlyTotals returns monthly totals for a transaction type
-func (s *TransactionService) GetMonthlyTotals(userID uint, transactionType string, startDate, endDate time.Time) (map[string]float64, error) {
+func (s *TransactionService) GetMonthlyTotals(
+	userID uint, transactionType string, startDate, endDate time.Time,
+) (map[string]float64, error) {
 	type MonthlyTotal struct {
 		Month string
 		Total float64

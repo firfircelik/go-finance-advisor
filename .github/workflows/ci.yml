@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  GO_VERSION: '1.23'
+  GO_VERSION: '1.24'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -95,12 +95,12 @@ jobs:
         TEST_DB_PATH: ":memory:"
     
     - name: Generate test report
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2
       if: success() || failure()
       with:
         name: Go Tests
         path: test-results.json
-        reporter: go-test-json
+        reporter: golang-json
         fail-on-error: false
     
     - name: Run benchmarks

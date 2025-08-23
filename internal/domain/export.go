@@ -113,7 +113,7 @@ const (
 	ExportStatusExpired    ExportStatus = "expired"
 )
 
-// IsValidFormat checks if the export format is valid
+// IsValid checks if the export format is valid
 func (f ExportFormat) IsValid() bool {
 	switch f {
 	case ExportFormatCSV, ExportFormatJSON, ExportFormatPDF:

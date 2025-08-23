@@ -21,7 +21,7 @@ type MockAdvisorService struct {
 	mock.Mock
 }
 
-func (m *MockAdvisorService) GenerateAdvice(user domain.User) (*application.InvestmentAdvice, error) {
+func (m *MockAdvisorService) GenerateAdvice(user *domain.User) (*application.InvestmentAdvice, error) {
 	args := m.Called(user)
 	return args.Get(0).(*application.InvestmentAdvice), args.Error(1)
 }
@@ -85,7 +85,9 @@ type MockRealTimeMarketService struct {
 	mock.Mock
 }
 
-func (m *MockRealTimeMarketService) GeneratePersonalizedAdvice(user *domain.User, monthlyIncome float64) (*pkg.InvestmentRecommendation, error) {
+func (m *MockRealTimeMarketService) GeneratePersonalizedAdvice(
+	user *domain.User, monthlyIncome float64,
+) (*pkg.InvestmentRecommendation, error) {
 	args := m.Called(user, monthlyIncome)
 	return args.Get(0).(*pkg.InvestmentRecommendation), args.Error(1)
 }
@@ -115,7 +117,9 @@ func (m *MockRealTimeMarketService) GetMarketSummary() (map[string]interface{}, 
 	return args.Get(0).(map[string]interface{}), args.Error(1)
 }
 
-func (m *MockRealTimeMarketService) GenerateRecommendations(riskTolerance string, monthlyIncome float64, analysis *pkg.MarketAnalysis) []domain.Recommendation {
+func (m *MockRealTimeMarketService) GenerateRecommendations(
+	riskTolerance string, monthlyIncome float64, analysis *pkg.MarketAnalysis,
+) []domain.Recommendation {
 	args := m.Called(riskTolerance, monthlyIncome, analysis)
 	return args.Get(0).([]domain.Recommendation)
 }
@@ -125,7 +129,9 @@ func (m *MockRealTimeMarketService) GenerateAdviceText(riskTolerance string, ana
 	return args.String(0)
 }
 
-func (m *MockRealTimeMarketService) PerformAIRiskAssessment(user *domain.User, monthlyIncome float64, goals []string) (*pkg.AIRiskAssessment, error) {
+func (m *MockRealTimeMarketService) PerformAIRiskAssessment(
+	user *domain.User, monthlyIncome float64, goals []string,
+) (*pkg.AIRiskAssessment, error) {
 	args := m.Called(user, monthlyIncome, goals)
 	return args.Get(0).(*pkg.AIRiskAssessment), args.Error(1)
 }
@@ -168,7 +174,7 @@ func TestAdvisorHandler_GetAdvice(t *testing.T) {
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
 		mockAdvisorService.On("GenerateAdvice", *user).Return(advice, nil)
 
-		req := httptest.NewRequest("GET", "/advice/1", nil)
+		req := httptest.NewRequest("GET", "/advice/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -189,7 +195,7 @@ func TestAdvisorHandler_GetAdvice(t *testing.T) {
 
 		mockUserService.On("GetByID", uint(999)).Return(domain.User{}, errors.New("user not found"))
 
-		req := httptest.NewRequest("GET", "/advice/999", nil)
+		req := httptest.NewRequest("GET", "/advice/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -215,7 +221,7 @@ func TestAdvisorHandler_GetAdvice(t *testing.T) {
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
 		mockAdvisorService.On("GenerateAdvice", *user).Return((*application.InvestmentAdvice)(nil), errors.New("advisor service error"))
 
-		req := httptest.NewRequest("GET", "/advice/1", nil)
+		req := httptest.NewRequest("GET", "/advice/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -245,7 +251,10 @@ func TestAdvisorHandler_GetRealTimeAdvice(t *testing.T) {
 			UserID:      1,
 			RiskProfile: "moderate",
 			Recommendations: []domain.Recommendation{
-				{Symbol: "SPY", Action: "buy", Reason: "Diversify portfolio", Confidence: 80.0, RiskLevel: "moderate", Timeframe: "long", IsActive: true},
+				{
+					Symbol: "SPY", Action: "buy", Reason: "Diversify portfolio",
+					Confidence: 80.0, RiskLevel: "moderate", Timeframe: "long", IsActive: true,
+				},
 				{Symbol: "BTC", Action: "buy", Reason: "Consider bonds", Confidence: 60.0, RiskLevel: "moderate", Timeframe: "medium", IsActive: true},
 			},
 			Advice:    "Diversify portfolio, Consider bonds",
@@ -255,7 +264,7 @@ func TestAdvisorHandler_GetRealTimeAdvice(t *testing.T) {
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
 		mockMarketService.On("GeneratePersonalizedAdvice", user, 5000.0).Return(advice, nil)
 
-		req := httptest.NewRequest("GET", "/advice/realtime/1", nil)
+		req := httptest.NewRequest("GET", "/advice/realtime/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -305,7 +314,7 @@ func TestAdvisorHandler_GetRealTimeAdvice(t *testing.T) {
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
 		mockMarketService.On("GeneratePersonalizedAdvice", user, 8000.0).Return(advice, nil)
 
-		req := httptest.NewRequest("GET", "/advice/realtime/1?monthly_income=8000", nil)
+		req := httptest.NewRequest("GET", "/advice/realtime/1?monthly_income=8000", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -325,7 +334,7 @@ func TestAdvisorHandler_GetRealTimeAdvice(t *testing.T) {
 
 		mockUserService.On("GetByID", uint(999)).Return(domain.User{}, errors.New("user not found"))
 
-		req := httptest.NewRequest("GET", "/advice/realtime/999", nil)
+		req := httptest.NewRequest("GET", "/advice/realtime/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -357,7 +366,7 @@ func TestAdvisorHandler_GetMarketData(t *testing.T) {
 
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/market/data", nil)
+		req := httptest.NewRequest("GET", "/market/data", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -377,7 +386,7 @@ func TestAdvisorHandler_GetMarketData(t *testing.T) {
 
 		mockMarketService.On("AnalyzeMarket").Return((*pkg.MarketAnalysis)(nil), errors.New("market service error"))
 
-		req := httptest.NewRequest("GET", "/market/data", nil)
+		req := httptest.NewRequest("GET", "/market/data", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -417,7 +426,7 @@ func TestAdvisorHandler_GetCryptoPrices(t *testing.T) {
 
 		mockMarketService.On("GetCryptoPrices").Return(cryptos, nil)
 
-		req := httptest.NewRequest("GET", "/market/crypto", nil)
+		req := httptest.NewRequest("GET", "/market/crypto", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -439,7 +448,7 @@ func TestAdvisorHandler_GetCryptoPrices(t *testing.T) {
 
 		mockMarketService.On("GetCryptoPrices").Return([]pkg.CryptoPrice{}, errors.New("crypto service error"))
 
-		req := httptest.NewRequest("GET", "/market/crypto", nil)
+		req := httptest.NewRequest("GET", "/market/crypto", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -470,7 +479,7 @@ func TestAdvisorHandler_GetStockPrices(t *testing.T) {
 
 		mockMarketService.On("GetStockPrices", []string(nil)).Return(stocks, nil)
 
-		req := httptest.NewRequest("GET", "/market/stocks", nil)
+		req := httptest.NewRequest("GET", "/market/stocks", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -500,7 +509,7 @@ func TestAdvisorHandler_GetStockPrices(t *testing.T) {
 
 		mockMarketService.On("GetStockPrices", []string{"AAPL"}).Return(stocks, nil)
 
-		req := httptest.NewRequest("GET", "/market/stocks?symbols=AAPL", nil)
+		req := httptest.NewRequest("GET", "/market/stocks?symbols=AAPL", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -531,7 +540,7 @@ func TestAdvisorHandler_GetMarketSummary(t *testing.T) {
 
 		mockMarketService.On("GetMarketSummary").Return(summary, nil)
 
-		req := httptest.NewRequest("GET", "/market/summary", nil)
+		req := httptest.NewRequest("GET", "/market/summary", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -549,9 +558,9 @@ func TestAdvisorHandler_GetMarketSummary(t *testing.T) {
 		router := setupGin()
 		router.GET("/market/summary", handler.GetMarketSummary)
 
-		mockMarketService.On("GetMarketSummary").Return((map[string]interface{})(nil), errors.New("market service error"))
+		mockMarketService.On("GetMarketSummary").Return(map[string]interface{}(nil), errors.New("market service error"))
 
-		req := httptest.NewRequest("GET", "/market/summary", nil)
+		req := httptest.NewRequest("GET", "/market/summary", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -608,7 +617,7 @@ func TestAdvisorHandler_GetPortfolioRecommendations(t *testing.T) {
 		mockMarketService.On("GenerateRecommendations", "moderate", 5000.0, analysis).Return(recommendations)
 		mockMarketService.On("GenerateAdviceText", "moderate", analysis).Return(adviceText)
 
-		req := httptest.NewRequest("GET", "/portfolio/recommendations/1", nil)
+		req := httptest.NewRequest("GET", "/portfolio/recommendations/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -631,7 +640,7 @@ func TestAdvisorHandler_GetPortfolioRecommendations(t *testing.T) {
 
 		mockUserService.On("GetByID", uint(999)).Return(domain.User{}, errors.New("user not found"))
 
-		req := httptest.NewRequest("GET", "/portfolio/recommendations/999", nil)
+		req := httptest.NewRequest("GET", "/portfolio/recommendations/999", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -669,7 +678,7 @@ func TestAdvisorHandler_GetAIRiskAssessment(t *testing.T) {
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
 		mockMarketService.On("PerformAIRiskAssessment", user, 5000.0, []string{"retirement", "wealth_building"}).Return(assessment, nil)
 
-		req := httptest.NewRequest("GET", "/ai/risk-assessment/1", nil)
+		req := httptest.NewRequest("GET", "/ai/risk-assessment/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -707,7 +716,7 @@ func TestAdvisorHandler_GetAIRiskAssessment(t *testing.T) {
 		mockUserService.On("GetByID", uint(1)).Return(*user, nil)
 		mockMarketService.On("PerformAIRiskAssessment", user, 8000.0, []string{"growth"}).Return(assessment, nil)
 
-		req := httptest.NewRequest("GET", "/ai/risk-assessment/1?monthly_income=8000&goals=growth", nil)
+		req := httptest.NewRequest("GET", "/ai/risk-assessment/1?monthly_income=8000&goals=growth", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -740,7 +749,7 @@ func TestAdvisorHandler_GetAIMarketPrediction(t *testing.T) {
 
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/ai/market-prediction", nil)
+		req := httptest.NewRequest("GET", "/ai/market-prediction", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -773,7 +782,7 @@ func TestAdvisorHandler_GetAIMarketPrediction(t *testing.T) {
 
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/ai/market-prediction?timeframe=60", nil)
+		req := httptest.NewRequest("GET", "/ai/market-prediction?timeframe=60", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -821,7 +830,7 @@ func TestAdvisorHandler_GetAIPortfolioOptimization(t *testing.T) {
 		mockMarketService.On("PerformAIRiskAssessment", user, 5000.0, []string{"optimization"}).Return(assessment, nil)
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/ai/portfolio-optimization/1", nil)
+		req := httptest.NewRequest("GET", "/ai/portfolio-optimization/1", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
@@ -869,7 +878,7 @@ func TestAdvisorHandler_GetAIPortfolioOptimization(t *testing.T) {
 		mockMarketService.On("PerformAIRiskAssessment", user, 8000.0, []string{"optimization"}).Return(assessment, nil)
 		mockMarketService.On("AnalyzeMarket").Return(analysis, nil)
 
-		req := httptest.NewRequest("GET", "/ai/portfolio-optimization/1?monthly_income=8000&current_value=100000", nil)
+		req := httptest.NewRequest("GET", "/ai/portfolio-optimization/1?monthly_income=8000&current_value=100000", http.NoBody)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)

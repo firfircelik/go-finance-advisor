@@ -40,7 +40,7 @@ func (s *AdvisorService) CalculateMonthlySavings(userID uint) (float64, error) {
 	return (income - expense) / 3.0, nil
 }
 
-func (s *AdvisorService) GenerateAdvice(user domain.User) (*InvestmentAdvice, error) {
+func (s *AdvisorService) GenerateAdvice(user *domain.User) (*InvestmentAdvice, error) {
 	savings, err := s.CalculateMonthlySavings(user.ID)
 	if err != nil {
 		return nil, err

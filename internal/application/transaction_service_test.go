@@ -25,7 +25,7 @@ func setupTransactionTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func createTestData(t *testing.T, db *gorm.DB) (uint, uint, uint) {
+func createTestData(t *testing.T, db *gorm.DB) (userID, categoryID1, categoryID2 uint) {
 	// Create test user
 	user := &domain.User{
 		Email:     "test@example.com",

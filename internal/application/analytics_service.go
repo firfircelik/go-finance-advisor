@@ -114,8 +114,8 @@ func (s *AnalyticsService) GetCategoryAnalysis(userID, categoryID uint, startDat
 	}
 
 	totalAmount := 0.0
-	for _, tx := range transactions {
-		totalAmount += tx.Amount
+	for i := range transactions {
+		totalAmount += transactions[i].Amount
 	}
 
 	averageAmount := totalAmount / float64(len(transactions))
@@ -139,11 +139,11 @@ func (s *AnalyticsService) calculateBasicMetrics(metrics *domain.FinancialMetric
 	totalIncome := 0.0
 	totalExpenses := 0.0
 
-	for _, tx := range transactions {
-		if tx.Type == "income" {
-			totalIncome += tx.Amount
+	for i := range transactions {
+		if transactions[i].Type == domain.TransactionTypeIncome {
+			totalIncome += transactions[i].Amount
 		} else {
-			totalExpenses += tx.Amount
+			totalExpenses += transactions[i].Amount
 		}
 	}
 
@@ -163,7 +163,8 @@ func (s *AnalyticsService) calculateCategoryBreakdown(transactions []domain.Tran
 	totalAmount := 0.0
 
 	// Calculate totals for each category
-	for _, tx := range transactions {
+	for i := range transactions {
+		tx := &transactions[i]
 		totalAmount += tx.Amount
 		if metrics, exists := categoryMap[tx.CategoryID]; exists {
 			metrics.TotalAmount += tx.Amount
@@ -210,11 +211,11 @@ func (s *AnalyticsService) calculateMonthlyTrends(userID uint, startDate, endDat
 
 		income := 0.0
 		expenses := 0.0
-		for _, tx := range transactions {
-			if tx.Type == "income" {
-				income += tx.Amount
+		for i := range transactions {
+			if transactions[i].Type == "income" {
+				income += transactions[i].Amount
 			} else {
-				expenses += tx.Amount
+				expenses += transactions[i].Amount
 			}
 		}
 
@@ -248,7 +249,8 @@ func (s *AnalyticsService) calculateBudgetPerformance(userID uint, startDate, en
 	categoriesOverBudget := 0
 	categoriesUnderBudget := 0
 
-	for _, budget := range budgets {
+	for i := range budgets {
+		budget := &budgets[i]
 		totalBudgeted += budget.Amount
 		totalSpent += budget.Spent
 
@@ -286,8 +288,9 @@ func (s *AnalyticsService) calculateDailyAverages(transactions []domain.Transact
 	totalIncome := 0.0
 	totalExpenses := 0.0
 
-	for _, tx := range transactions {
-		if tx.Type == "income" {
+	for i := range transactions {
+		tx := &transactions[i]
+		if tx.Type == domain.TransactionTypeIncome {
 			totalIncome += tx.Amount
 		} else {
 			totalExpenses += tx.Amount
@@ -328,11 +331,11 @@ func (s *AnalyticsService) calculateWeeklyTrends(userID uint, startDate, endDate
 
 		income := 0.0
 		expenses := 0.0
-		for _, tx := range transactions {
-			if tx.Type == "income" {
-				income += tx.Amount
+		for i := range transactions {
+			if transactions[i].Type == "income" {
+				income += transactions[i].Amount
 			} else {
-				expenses += tx.Amount
+				expenses += transactions[i].Amount
 			}
 		}
 
@@ -387,8 +390,9 @@ func (s *AnalyticsService) GetDashboardSummary(userID uint, period string) (*dom
 	// Calculate basic metrics
 	totalIncome := 0.0
 	totalExpenses := 0.0
-	for _, tx := range transactions {
-		if tx.Type == "income" {
+	for i := range transactions {
+		tx := &transactions[i]
+		if tx.Type == domain.TransactionTypeIncome {
 			totalIncome += tx.Amount
 		} else {
 			totalExpenses += tx.Amount
@@ -447,10 +451,14 @@ func (s *AnalyticsService) calculateBudgetAlerts(userID uint, startDate, endDate
 	s.DB.Preload("Category").Where("user_id = ?", userID).Find(&budgets)
 
 	var alerts []domain.BudgetAlert
-	for _, budget := range budgets {
+	for i := range budgets {
+		budget := &budgets[i]
 		// Calculate spent amount for this budget's category
 		var spentAmount float64
-		s.DB.Model(&domain.Transaction{}).Where("user_id = ? AND category_id = ? AND date BETWEEN ? AND ?", userID, budget.CategoryID, startDate, endDate).Select("COALESCE(SUM(amount), 0)").Scan(&spentAmount)
+		query := s.DB.Model(&domain.Transaction{}).
+			Where("user_id = ? AND category_id = ? AND date BETWEEN ? AND ?", userID, budget.CategoryID, startDate, endDate).
+			Select("COALESCE(SUM(amount), 0)")
+		query.Scan(&spentAmount)
 
 		percentageUsed := 0.0
 		if budget.Amount > 0 {
@@ -475,7 +483,11 @@ func (s *AnalyticsService) calculateBudgetAlerts(userID uint, startDate, endDate
 	return alerts
 }
 
-func (s *AnalyticsService) calculateQuickStats(userID uint, transactions []domain.Transaction, startDate, endDate time.Time) domain.QuickStats {
+func (s *AnalyticsService) calculateQuickStats(
+	userID uint,
+	transactions []domain.Transaction,
+	startDate, endDate time.Time,
+) domain.QuickStats {
 	totalTransactions := len(transactions)
 	averageTransaction := 0.0
 	largestExpense := 0.0
@@ -485,9 +497,10 @@ func (s *AnalyticsService) calculateQuickStats(userID uint, transactions []domai
 		totalAmount := 0.0
 		categoryCount := make(map[string]int)
 
-		for _, tx := range transactions {
+		for i := range transactions {
+			tx := &transactions[i]
 			totalAmount += tx.Amount
-			if tx.Type == "expense" && tx.Amount > largestExpense {
+			if tx.Type == domain.TransactionTypeExpense && tx.Amount > largestExpense {
 				largestExpense = tx.Amount
 			}
 			if tx.Category.Name != "" {
@@ -515,7 +528,8 @@ func (s *AnalyticsService) calculateQuickStats(userID uint, transactions []domai
 		recentTotal := 0.0
 		olderTotal := 0.0
 
-		for i, tx := range transactions {
+		for i := range transactions {
+			tx := &transactions[i]
 			if i < midPoint {
 				olderTotal += tx.Amount
 			} else {
@@ -546,8 +560,8 @@ func (s *AnalyticsService) calculateCategoryTrend(userID, categoryID uint, start
 	s.DB.Where("user_id = ? AND category_id = ? AND date BETWEEN ? AND ?", userID, categoryID, startDate, endDate).Find(&currentTransactions)
 
 	currentTotal := 0.0
-	for _, tx := range currentTransactions {
-		currentTotal += tx.Amount
+	for i := range currentTransactions {
+		currentTotal += currentTransactions[i].Amount
 	}
 
 	// Calculate spending for previous period (same duration)
@@ -556,11 +570,12 @@ func (s *AnalyticsService) calculateCategoryTrend(userID, categoryID uint, start
 	prevEndDate := startDate
 
 	var prevTransactions []domain.Transaction
-	s.DB.Where("user_id = ? AND category_id = ? AND date BETWEEN ? AND ?", userID, categoryID, prevStartDate, prevEndDate).Find(&prevTransactions)
+	s.DB.Where("user_id = ? AND category_id = ? AND date BETWEEN ? AND ?",
+		userID, categoryID, prevStartDate, prevEndDate).Find(&prevTransactions)
 
 	prevTotal := 0.0
-	for _, tx := range prevTransactions {
-		prevTotal += tx.Amount
+	for i := range prevTransactions {
+		prevTotal += prevTransactions[i].Amount
 	}
 
 	// Determine trend

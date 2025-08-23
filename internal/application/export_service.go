@@ -22,7 +22,9 @@ func NewExportService(db *gorm.DB) *ExportService {
 }
 
 // ExportTransactions exports user transactions in the specified format
-func (s *ExportService) ExportTransactions(userID uint, format domain.ExportFormat, startDate, endDate *time.Time) ([]byte, string, error) {
+func (s *ExportService) ExportTransactions(
+	userID uint, format domain.ExportFormat, startDate, endDate *time.Time,
+) (data []byte, filename string, err error) {
 	// Get transactions
 	var transactions []domain.Transaction
 	query := s.DB.Preload("Category").Where("user_id = ?", userID)
@@ -31,7 +33,7 @@ func (s *ExportService) ExportTransactions(userID uint, format domain.ExportForm
 		query = query.Where("date BETWEEN ? AND ?", *startDate, *endDate)
 	}
 
-	err := query.Order("date DESC").Find(&transactions).Error
+	err = query.Order("date DESC").Find(&transactions).Error
 	if err != nil {
 		return nil, "", err
 	}
@@ -41,17 +43,20 @@ func (s *ExportService) ExportTransactions(userID uint, format domain.ExportForm
 		return s.exportTransactionsCSV(transactions)
 	case domain.ExportFormatJSON:
 		return s.exportTransactionsJSON(transactions)
+	case domain.ExportFormatPDF:
+		return nil, "", fmt.Errorf("unsupported export format: %s", format)
 	default:
 		return nil, "", fmt.Errorf("unsupported export format: %s", format)
 	}
 }
 
 // ExportFinancialReport exports a financial report in the specified format
-func (s *ExportService) ExportFinancialReport(userID uint, reportType string, year, month int, format domain.ExportFormat) ([]byte, string, error) {
+func (s *ExportService) ExportFinancialReport(
+	userID uint, reportType string, year, month int, format domain.ExportFormat,
+) (data []byte, filename string, err error) {
 	// Generate the report first
 	reportsService := NewReportsService(s.DB)
 	var report *domain.FinancialReport
-	var err error
 
 	switch reportType {
 	case "monthly":
@@ -71,16 +76,18 @@ func (s *ExportService) ExportFinancialReport(userID uint, reportType string, ye
 		return s.exportReportJSON(report)
 	case domain.ExportFormatCSV:
 		return s.exportReportCSV(report)
+	case domain.ExportFormatPDF:
+		return nil, "", fmt.Errorf("unsupported export format: %s", format)
 	default:
 		return nil, "", fmt.Errorf("unsupported export format: %s", format)
 	}
 }
 
 // ExportBudgets exports user budgets in the specified format
-func (s *ExportService) ExportBudgets(userID uint, format domain.ExportFormat) ([]byte, string, error) {
+func (s *ExportService) ExportBudgets(userID uint, format domain.ExportFormat) (data []byte, filename string, err error) {
 	// Get budgets
 	var budgets []domain.Budget
-	err := s.DB.Preload("Category").Where("user_id = ?", userID).Find(&budgets).Error
+	err = s.DB.Preload("Category").Where("user_id = ?", userID).Find(&budgets).Error
 	if err != nil {
 		return nil, "", err
 	}
@@ -90,20 +97,22 @@ func (s *ExportService) ExportBudgets(userID uint, format domain.ExportFormat) (
 		return s.exportBudgetsCSV(budgets)
 	case domain.ExportFormatJSON:
 		return s.exportBudgetsJSON(budgets)
+	case domain.ExportFormatPDF:
+		return nil, "", fmt.Errorf("unsupported export format: %s", format)
 	default:
 		return nil, "", fmt.Errorf("unsupported export format: %s", format)
 	}
 }
 
 // ExportAllData exports all user financial data
-func (s *ExportService) ExportAllData(userID uint, format domain.ExportFormat) ([]byte, string, error) {
+func (s *ExportService) ExportAllData(userID uint, format domain.ExportFormat) (data []byte, filename string, err error) {
 	// Get all data
 	var transactions []domain.Transaction
 	var budgets []domain.Budget
 	var categories []domain.Category
 
 	// Get transactions
-	err := s.DB.Preload("Category").Where("user_id = ?", userID).Find(&transactions).Error
+	err = s.DB.Preload("Category").Where("user_id = ?", userID).Find(&transactions).Error
 	if err != nil {
 		return nil, "", err
 	}
@@ -130,13 +139,17 @@ func (s *ExportService) ExportAllData(userID uint, format domain.ExportFormat) (
 
 	switch format {
 	case domain.ExportFormatJSON:
-		return s.exportAllDataJSON(exportData)
+		return s.exportAllDataJSON(&exportData)
+	case domain.ExportFormatCSV:
+		return nil, "", fmt.Errorf("unsupported export format for all data: %s", format)
+	case domain.ExportFormatPDF:
+		return nil, "", fmt.Errorf("unsupported export format for all data: %s", format)
 	default:
 		return nil, "", fmt.Errorf("unsupported export format for all data: %s", format)
 	}
 }
 
-func (s *ExportService) exportTransactionsCSV(transactions []domain.Transaction) ([]byte, string, error) {
+func (s *ExportService) exportTransactionsCSV(transactions []domain.Transaction) (data []byte, filename string, err error) {
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
@@ -147,7 +160,8 @@ func (s *ExportService) exportTransactionsCSV(transactions []domain.Transaction)
 	}
 
 	// Write data
-	for _, tx := range transactions {
+	for i := range transactions {
+		tx := &transactions[i]
 		categoryName := ""
 		if tx.Category.Name != "" {
 			categoryName = tx.Category.Name
@@ -172,31 +186,31 @@ func (s *ExportService) exportTransactionsCSV(transactions []domain.Transaction)
 		return nil, "", err
 	}
 
-	filename := fmt.Sprintf("transactions_%s.csv", time.Now().Format("2006-01-02"))
+	filename = fmt.Sprintf("transactions_%s.csv", time.Now().Format("2006-01-02"))
 	return buf.Bytes(), filename, nil
 }
 
-func (s *ExportService) exportTransactionsJSON(transactions []domain.Transaction) ([]byte, string, error) {
-	data, err := json.MarshalIndent(transactions, "", "  ")
+func (s *ExportService) exportTransactionsJSON(transactions []domain.Transaction) (data []byte, filename string, err error) {
+	data, err = json.MarshalIndent(transactions, "", "  ")
 	if err != nil {
 		return nil, "", err
 	}
 
-	filename := fmt.Sprintf("transactions_%s.json", time.Now().Format("2006-01-02"))
+	filename = fmt.Sprintf("transactions_%s.json", time.Now().Format("2006-01-02"))
 	return data, filename, nil
 }
 
-func (s *ExportService) exportReportJSON(report *domain.FinancialReport) ([]byte, string, error) {
-	data, err := json.MarshalIndent(report, "", "  ")
+func (s *ExportService) exportReportJSON(report *domain.FinancialReport) (data []byte, filename string, err error) {
+	data, err = json.MarshalIndent(report, "", "  ")
 	if err != nil {
 		return nil, "", err
 	}
 
-	filename := fmt.Sprintf("financial_report_%s_%s.json", report.ReportType, report.StartDate.Format("2006-01"))
+	filename = fmt.Sprintf("financial_report_%s_%s.json", report.ReportType, report.StartDate.Format("2006-01"))
 	return data, filename, nil
 }
 
-func (s *ExportService) exportReportCSV(report *domain.FinancialReport) ([]byte, string, error) {
+func (s *ExportService) exportReportCSV(report *domain.FinancialReport) (data []byte, filename string, err error) {
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
@@ -223,7 +237,9 @@ func (s *ExportService) exportReportCSV(report *domain.FinancialReport) ([]byte,
 	}
 
 	// Add empty row
-	writer.Write([]string{"", ""})
+	if err := writer.Write([]string{"", ""}); err != nil {
+		return nil, "", err
+	}
 
 	// Write category breakdown
 	categoryHeader := []string{"Category", "Type", "Amount", "Percentage", "Transaction Count"}
@@ -249,11 +265,11 @@ func (s *ExportService) exportReportCSV(report *domain.FinancialReport) ([]byte,
 		return nil, "", err
 	}
 
-	filename := fmt.Sprintf("financial_report_%s_%s.csv", report.ReportType, report.StartDate.Format("2006-01"))
+	filename = fmt.Sprintf("financial_report_%s_%s.csv", report.ReportType, report.StartDate.Format("2006-01"))
 	return buf.Bytes(), filename, nil
 }
 
-func (s *ExportService) exportBudgetsCSV(budgets []domain.Budget) ([]byte, string, error) {
+func (s *ExportService) exportBudgetsCSV(budgets []domain.Budget) (data []byte, filename string, err error) {
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
@@ -264,7 +280,8 @@ func (s *ExportService) exportBudgetsCSV(budgets []domain.Budget) ([]byte, strin
 	}
 
 	// Write data
-	for _, budget := range budgets {
+	for i := range budgets {
+		budget := &budgets[i]
 		categoryName := ""
 		if budget.Category.Name != "" {
 			categoryName = budget.Category.Name
@@ -290,26 +307,26 @@ func (s *ExportService) exportBudgetsCSV(budgets []domain.Budget) ([]byte, strin
 		return nil, "", err
 	}
 
-	filename := fmt.Sprintf("budgets_%s.csv", time.Now().Format("2006-01-02"))
+	filename = fmt.Sprintf("budgets_%s.csv", time.Now().Format("2006-01-02"))
 	return buf.Bytes(), filename, nil
 }
 
-func (s *ExportService) exportBudgetsJSON(budgets []domain.Budget) ([]byte, string, error) {
-	data, err := json.MarshalIndent(budgets, "", "  ")
+func (s *ExportService) exportBudgetsJSON(budgets []domain.Budget) (data []byte, filename string, err error) {
+	data, err = json.MarshalIndent(budgets, "", "  ")
 	if err != nil {
 		return nil, "", err
 	}
 
-	filename := fmt.Sprintf("budgets_%s.json", time.Now().Format("2006-01-02"))
+	filename = fmt.Sprintf("budgets_%s.json", time.Now().Format("2006-01-02"))
 	return data, filename, nil
 }
 
-func (s *ExportService) exportAllDataJSON(exportData domain.ExportData) ([]byte, string, error) {
-	data, err := json.MarshalIndent(exportData, "", "  ")
+func (s *ExportService) exportAllDataJSON(exportData *domain.ExportData) (data []byte, filename string, err error) {
+	data, err = json.MarshalIndent(exportData, "", "  ")
 	if err != nil {
 		return nil, "", err
 	}
 
-	filename := fmt.Sprintf("financial_data_export_%s.json", time.Now().Format("2006-01-02"))
+	filename = fmt.Sprintf("financial_data_export_%s.json", time.Now().Format("2006-01-02"))
 	return data, filename, nil
 }

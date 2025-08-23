@@ -18,7 +18,7 @@ func NewReportsService(db *gorm.DB) *ReportsService {
 }
 
 // GenerateMonthlyReport generates a comprehensive monthly financial report
-func (s *ReportsService) GenerateMonthlyReport(userID uint, year int, month int) (*domain.FinancialReport, error) {
+func (s *ReportsService) GenerateMonthlyReport(userID uint, year, month int) (*domain.FinancialReport, error) {
 	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
 	endDate := startDate.AddDate(0, 1, 0).Add(-time.Second)
 
@@ -26,7 +26,7 @@ func (s *ReportsService) GenerateMonthlyReport(userID uint, year int, month int)
 }
 
 // GenerateQuarterlyReport generates a comprehensive quarterly financial report
-func (s *ReportsService) GenerateQuarterlyReport(userID uint, year int, quarter int) (*domain.FinancialReport, error) {
+func (s *ReportsService) GenerateQuarterlyReport(userID uint, year, quarter int) (*domain.FinancialReport, error) {
 	var startMonth int
 	switch quarter {
 	case 1:
@@ -73,7 +73,8 @@ func (s *ReportsService) generateReport(userID uint, reportType string, startDat
 	totalExpenses := 0.0
 	transactionCount := len(transactions)
 
-	for _, tx := range transactions {
+	for i := range transactions {
+		tx := &transactions[i]
 		if tx.Type == "income" {
 			totalIncome += tx.Amount
 		} else {
@@ -130,7 +131,8 @@ func (s *ReportsService) generateReport(userID uint, reportType string, startDat
 func (s *ReportsService) calculateCategoryBreakdown(transactions []domain.Transaction) []domain.CategoryMetrics {
 	categoryMap := make(map[uint]*domain.CategoryMetrics)
 
-	for _, tx := range transactions {
+	for i := range transactions {
+		tx := &transactions[i]
 		if tx.CategoryID == 0 {
 			continue
 		}
@@ -188,7 +190,8 @@ func (s *ReportsService) calculateMonthlyTrends(userID uint, startDate, endDate 
 
 		income := 0.0
 		expenses := 0.0
-		for _, tx := range transactions {
+		for i := range transactions {
+			tx := &transactions[i]
 			if tx.Type == "income" {
 				income += tx.Amount
 			} else {
@@ -220,12 +223,16 @@ func (s *ReportsService) calculateBudgetPerformance(userID uint, startDate, endD
 	budgetsOnTrack := 0
 	budgetsOverspent := 0
 
-	for _, budget := range budgets {
+	for i := range budgets {
+		budget := &budgets[i]
 		totalBudget += budget.Amount
 
 		// Calculate spent amount for this budget's category
 		var spentAmount float64
-		s.DB.Model(&domain.Transaction{}).Where("user_id = ? AND category_id = ? AND date BETWEEN ? AND ?", userID, budget.CategoryID, startDate, endDate).Select("COALESCE(SUM(amount), 0)").Scan(&spentAmount)
+		s.DB.Model(&domain.Transaction{}).
+			Where("user_id = ? AND category_id = ? AND date BETWEEN ? AND ?",
+				userID, budget.CategoryID, startDate, endDate).
+			Select("COALESCE(SUM(amount), 0)").Scan(&spentAmount)
 
 		totalSpent += spentAmount
 
@@ -236,25 +243,22 @@ func (s *ReportsService) calculateBudgetPerformance(userID uint, startDate, endD
 		}
 	}
 
-	performanceScore := 0.0
+	var variancePercentage float64
 	if totalBudget > 0 {
-		performanceScore = ((totalBudget - totalSpent) / totalBudget) * 100
-		if performanceScore < 0 {
-			performanceScore = 0
-		}
+		variancePercentage = ((totalBudget - totalSpent) / totalBudget) * 100
 	}
 
 	return domain.BudgetPerformanceMetrics{
 		TotalBudgeted:         totalBudget,
 		TotalSpent:            totalSpent,
 		Variance:              totalBudget - totalSpent,
-		VariancePercentage:    ((totalBudget - totalSpent) / totalBudget) * 100,
+		VariancePercentage:    variancePercentage,
 		CategoriesUnderBudget: budgetsOnTrack,
 		CategoriesOverBudget:  budgetsOverspent,
 	}
 }
 
-func (s *ReportsService) getTopCategories(categories []domain.CategoryMetrics, categoryType string, limit int) []domain.CategoryMetrics {
+func (s *ReportsService) getTopCategories(categories []domain.CategoryMetrics, _ string, limit int) []domain.CategoryMetrics {
 	filtered := append([]domain.CategoryMetrics{}, categories...)
 
 	// Sort by total amount (descending)
@@ -273,7 +277,10 @@ func (s *ReportsService) getTopCategories(categories []domain.CategoryMetrics, c
 	return filtered
 }
 
-func (s *ReportsService) generateInsights(totalIncome, totalExpenses, savingsRate float64, categories []domain.CategoryMetrics, budgetPerf domain.BudgetPerformanceMetrics) []string {
+func (s *ReportsService) generateInsights(
+	_, _, savingsRate float64,
+	categories []domain.CategoryMetrics, budgetPerf domain.BudgetPerformanceMetrics,
+) []string {
 	var insights []string
 
 	// Savings rate insights
@@ -303,14 +310,19 @@ func (s *ReportsService) generateInsights(totalIncome, totalExpenses, savingsRat
 	// Category insights
 	for _, category := range categories {
 		if category.PercentageOfTotal > 30 {
-			insights = append(insights, fmt.Sprintf("High spending in %s category (%.1f%% of total expenses).", category.CategoryName, category.PercentageOfTotal))
+			insights = append(insights, fmt.Sprintf(
+				"High spending in %s category (%.1f%% of total expenses).",
+				category.CategoryName, category.PercentageOfTotal))
 		}
 	}
 
 	return insights
 }
 
-func (s *ReportsService) generateRecommendations(savingsRate float64, categories []domain.CategoryMetrics, budgetPerf domain.BudgetPerformanceMetrics) []string {
+func (s *ReportsService) generateRecommendations(
+	savingsRate float64, categories []domain.CategoryMetrics,
+	budgetPerf domain.BudgetPerformanceMetrics,
+) []string {
 	var recommendations []string
 
 	// Savings recommendations
@@ -334,9 +346,10 @@ func (s *ReportsService) generateRecommendations(savingsRate float64, categories
 	}
 
 	// General recommendations
-	recommendations = append(recommendations, "Track your expenses daily for better financial awareness.")
-	recommendations = append(recommendations, "Review and update your budgets monthly.")
-	recommendations = append(recommendations, "Consider setting up an emergency fund if you haven't already.")
+	recommendations = append(recommendations,
+		"Track your expenses daily for better financial awareness.",
+		"Review and update your budgets monthly.",
+		"Consider setting up an emergency fund if you haven't already.")
 
 	return recommendations
 }

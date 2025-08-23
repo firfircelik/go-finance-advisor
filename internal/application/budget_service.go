@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"go-finance-advisor/internal/domain"
-
 	"gorm.io/gorm"
 )
 
@@ -34,7 +33,7 @@ func (s *BudgetService) CreateBudget(budget *domain.Budget) error {
 
 	// Set default values
 	if budget.Period == "" {
-		budget.Period = "monthly"
+		budget.Period = domain.PeriodMonthly
 	}
 
 	if budget.StartDate.IsZero() {
@@ -44,11 +43,11 @@ func (s *BudgetService) CreateBudget(budget *domain.Budget) error {
 	if budget.EndDate.IsZero() {
 		// Set end date based on period
 		switch budget.Period {
-		case "weekly":
+		case domain.PeriodWeekly:
 			budget.EndDate = budget.StartDate.AddDate(0, 0, 7)
-		case "monthly":
+		case domain.PeriodMonthly:
 			budget.EndDate = budget.StartDate.AddDate(0, 1, 0)
-		case "yearly":
+		case domain.PeriodYearly:
 			budget.EndDate = budget.StartDate.AddDate(1, 0, 0)
 		default:
 			budget.EndDate = budget.StartDate.AddDate(0, 1, 0) // Default to monthly
@@ -124,10 +123,10 @@ func (s *BudgetService) UpdateBudgetSpending(userID, categoryID uint, amount flo
 	}
 
 	// Update spent amount for each matching budget
-	for _, budget := range budgets {
-		budget.Spent += amount
-		budget.CalculateRemaining()
-		s.DB.Save(&budget)
+	for i := range budgets {
+		budgets[i].Spent += amount
+		budgets[i].CalculateRemaining()
+		s.DB.Save(&budgets[i])
 	}
 
 	return nil
@@ -147,11 +146,11 @@ func (s *BudgetService) GetBudgetSummary(userID uint) (*domain.BudgetSummary, er
 	totalSpent := 0.0
 	overBudgetCount := 0
 
-	for _, budget := range budgets {
-		totalBudget += budget.Amount
-		totalSpent += budget.Spent
+	for i := range budgets {
+		totalBudget += budgets[i].Amount
+		totalSpent += budgets[i].Spent
 
-		if budget.Spent > budget.Amount {
+		if budgets[i].Spent > budgets[i].Amount {
 			overBudgetCount++
 		}
 	}
@@ -203,21 +202,21 @@ func (s *BudgetService) RefreshBudgetSpending(userID uint) error {
 		return err
 	}
 
-	for _, budget := range budgets {
+	for i := range budgets {
 		// Calculate actual spent amount from transactions
 		var totalSpent float64
 		err := s.DB.Model(&domain.Transaction{}).Where(
 			"user_id = ? AND category_id = ? AND date BETWEEN ? AND ?",
-			budget.UserID, budget.CategoryID, budget.StartDate, budget.EndDate,
+			budgets[i].UserID, budgets[i].CategoryID, budgets[i].StartDate, budgets[i].EndDate,
 		).Select("COALESCE(SUM(amount), 0)").Scan(&totalSpent).Error
 
 		if err != nil {
 			continue
 		}
 
-		budget.Spent = totalSpent
-		budget.CalculateRemaining()
-		s.DB.Save(&budget)
+		budgets[i].Spent = totalSpent
+		budgets[i].CalculateRemaining()
+		s.DB.Save(&budgets[i])
 	}
 
 	return nil

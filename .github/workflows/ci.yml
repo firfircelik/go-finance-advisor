@@ -344,15 +344,18 @@ jobs:
     
     - name: Generate changelog
       id: changelog
+      shell: bash
       run: |
-        # Generate changelog with better formatting
-        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-        if git describe --tags --abbrev=0 >/dev/null 2>&1; then
-          git log --pretty=format:"- %s (%h)" $(git describe --tags --abbrev=0)..HEAD >> $GITHUB_OUTPUT
-        else
-          git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
-        fi
-        echo "EOF" >> $GITHUB_OUTPUT
+        delim=$(openssl rand -hex 8 2>/dev/null || echo "EOF_$(date +%s)_$RANDOM")
+        {
+          echo "CHANGELOG<<$delim"
+          if git describe --tags --abbrev=0 >/dev/null 2>&1; then
+            git log --pretty=format:"- %s (%h)" "$(git describe --tags --abbrev=0)..HEAD"
+          else
+            git log --pretty=format:"- %s (%h)"
+          fi
+          echo "$delim"
+        } >> "$GITHUB_OUTPUT"
     
     - name: Download build artifacts
       uses: actions/download-artifact@v4

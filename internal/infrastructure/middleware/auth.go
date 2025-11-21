@@ -11,7 +11,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("your-secret-key")
+// jwtSecret is set via SetJWTSecret during application initialization
+var jwtSecret []byte
+
+// SetJWTSecret configures the JWT signing secret
+// This must be called before using GenerateToken or AuthMiddleware
+func SetJWTSecret(secret string) {
+	jwtSecret = []byte(secret)
+}
 
 type Claims struct {
 	UserID uint `json:"user_id"`
@@ -19,11 +26,12 @@ type Claims struct {
 }
 
 // GenerateToken creates a JWT token for a user
-func GenerateToken(userID uint) (string, error) {
+// The token expiration can be customized via the expiration parameter
+func GenerateToken(userID uint, expiration time.Duration) (string, error) {
 	claims := &Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

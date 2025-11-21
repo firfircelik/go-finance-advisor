@@ -11,13 +11,17 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	App      AppConfig
-	Database DatabaseConfig
-	JWT      JWTConfig
-	API      APIConfig
-	Server   ServerConfig
-	Redis    RedisConfig
-	Logging  LoggingConfig
+	App         AppConfig
+	Database    DatabaseConfig
+	TimescaleDB TimescaleDBConfig
+	JWT         JWTConfig
+	API         APIConfig
+	Server      ServerConfig
+	Redis       RedisConfig
+	Logging     LoggingConfig
+	Binance     BinanceConfig
+	Yahoo       YahooConfig
+	Email       EmailConfig
 }
 
 // AppConfig contains general application settings
@@ -77,6 +81,48 @@ type LoggingConfig struct {
 	Format string // json or text
 }
 
+// TimescaleDBConfig contains TimescaleDB connection settings
+type TimescaleDBConfig struct {
+	Host           string
+	Port           string
+	Name           string
+	User           string
+	Password       string
+	SSLMode        string
+	Enabled        bool
+	ChunkInterval  string
+	RetentionDays  int
+}
+
+// BinanceConfig contains Binance API settings
+type BinanceConfig struct {
+	WSEndpoint    string
+	APIKey        string
+	APISecret     string
+	WatchSymbols  []string
+	EnableTrades  bool
+	EnableKlines  bool
+	KlineInterval string
+}
+
+// YahooConfig contains Yahoo Finance settings
+type YahooConfig struct {
+	Enabled       bool
+	WatchSymbols  []string
+	FetchInterval time.Duration
+}
+
+// EmailConfig contains email notification settings
+type EmailConfig struct {
+	Enabled  bool
+	Provider string
+	SMTPHost string
+	SMTPPort int
+	From     string
+	Username string
+	Password string
+}
+
 // Load reads configuration from environment variables with validation
 func Load() (*Config, error) {
 	cfg := &Config{
@@ -122,6 +168,40 @@ func Load() (*Config, error) {
 		Logging: LoggingConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),
 			Format: getEnv("LOG_FORMAT", "json"),
+		},
+		TimescaleDB: TimescaleDBConfig{
+			Host:          getEnv("TIMESCALE_HOST", "localhost"),
+			Port:          getEnv("TIMESCALE_PORT", "5432"),
+			Name:          getEnv("TIMESCALE_DB", "timescale_db"),
+			User:          getEnv("TIMESCALE_USER", "timescale_user"),
+			Password:      getEnv("TIMESCALE_PASSWORD", ""),
+			SSLMode:       getEnv("TIMESCALE_SSL_MODE", "disable"),
+			Enabled:       getEnvAsBool("TIMESCALE_ENABLED", true),
+			ChunkInterval: getEnv("TIMESCALE_CHUNK_INTERVAL", "1 day"),
+			RetentionDays: getEnvAsInt("TIMESCALE_RETENTION_DAYS", 365),
+		},
+		Binance: BinanceConfig{
+			WSEndpoint:    getEnv("BINANCE_WS_ENDPOINT", "wss://stream.binance.com:9443/ws"),
+			APIKey:        getEnv("BINANCE_API_KEY", ""),
+			APISecret:     getEnv("BINANCE_API_SECRET", ""),
+			WatchSymbols:  getEnvAsSlice("BINANCE_WATCH_SYMBOLS", []string{"BTCUSDT", "ETHUSDT", "BNBUSDT"}),
+			EnableTrades:  getEnvAsBool("BINANCE_ENABLE_TRADES", false),
+			EnableKlines:  getEnvAsBool("BINANCE_ENABLE_KLINES", true),
+			KlineInterval: getEnv("BINANCE_KLINE_INTERVAL", "1m"),
+		},
+		Yahoo: YahooConfig{
+			Enabled:       getEnvAsBool("YAHOO_ENABLED", true),
+			WatchSymbols:  getEnvAsSlice("YAHOO_WATCH_SYMBOLS", []string{"AAPL", "GOOGL", "MSFT", "TSLA"}),
+			FetchInterval: getEnvAsDuration("YAHOO_FETCH_INTERVAL", 5*time.Minute),
+		},
+		Email: EmailConfig{
+			Enabled:  getEnvAsBool("EMAIL_ENABLED", false),
+			Provider: getEnv("EMAIL_PROVIDER", "smtp"),
+			SMTPHost: getEnv("SMTP_HOST", "smtp.gmail.com"),
+			SMTPPort: getEnvAsInt("SMTP_PORT", 587),
+			From:     getEnv("EMAIL_FROM", ""),
+			Username: getEnv("EMAIL_USERNAME", ""),
+			Password: getEnv("EMAIL_PASSWORD", ""),
 		},
 	}
 

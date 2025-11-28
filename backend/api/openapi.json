@@ -1,0 +1,17 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Aequitas API", "version": "1.0.0" },
+  "paths": {
+    "/api/health": { "get": { "summary": "Health", "responses": { "200": { "description": "OK" } } } },
+    "/api/auth/signup": { "post": { "summary": "Signup", "responses": { "200": { "description": "Token" } } } },
+    "/api/auth/login": { "post": { "summary": "Login", "responses": { "200": { "description": "Token" } } } },
+    "/api/auth/refresh": { "post": { "summary": "Refresh", "responses": { "200": { "description": "Token" } } } },
+    "/api/me": { "get": { "summary": "Current user", "responses": { "200": { "description": "User" } } } },
+    "/api/overview": { "get": { "summary": "Overview", "responses": { "200": { "description": "Overview" } } } },
+    "/api/allocation": { "get": { "summary": "Allocation", "responses": { "200": { "description": "Allocation" } } } },
+    "/api/holdings": { "get": { "summary": "Holdings", "responses": { "200": { "description": "Holdings" } } } },
+    "/api/performance": { "get": { "summary": "Performance", "responses": { "200": { "description": "Performance" } } } },
+    "/api/ticker": { "get": { "summary": "Ticker", "responses": { "200": { "description": "Ticker" } } } },
+    "/metrics": { "get": { "summary": "Prometheus metrics", "responses": { "200": { "description": "Metrics" } } } }
+  }
+}

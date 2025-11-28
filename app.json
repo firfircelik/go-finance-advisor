@@ -1,0 +1,31 @@
+{
+  "name": "go-finance-advisor",
+  "description": "A comprehensive personal finance management platform",
+  "repository": "https://github.com/your-username/go-finance-advisor",
+  "logo": "https://example.com/logo.png",
+  "keywords": ["finance", "budget", "portfolio", "go", "golang"],
+  "stack": "go",
+  "env": {
+    "JWT_SECRET": {
+      "description": "Secret key for JWT token generation",
+      "required": true,
+      "generator": "secret"
+    },
+    "JWT_REFRESH_SECRET": {
+      "description": "Secret key for JWT refresh tokens",
+      "required": true,
+      "generator": "secret"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/go"
+    }
+  ]
+}
